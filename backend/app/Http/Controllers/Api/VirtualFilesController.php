@@ -135,6 +135,37 @@ class VirtualFilesController extends Controller
     }
 
     /**
+     * Preview/Stream file (PDF, images, videos)
+     * GET /api/vfs/preview/{id}
+     */
+    public function preview(Request $request, $id)
+    {
+        try {
+            // Verify user owns this file
+            $virtualFile = \App\Models\VirtualFile::with('cloudAccount')
+                ->where('id', $id)
+                ->where('user_id', $request->user()->id)
+                ->firstOrFail();
+            
+            // Set access token
+            $this->driveService->getDriveService()
+                ->getClient()
+                ->setAccessToken($virtualFile->cloudAccount->access_token);
+
+            // Stream file content from Google Drive
+            $fileContent = $this->driveService->getFileContent($virtualFile->cloud_file_id);
+
+            return response($fileContent)
+                ->header('Content-Type', $virtualFile->mime_type)
+                ->header('Content-Disposition', 'inline; filename="' . $virtualFile->name . '"')
+                ->header('Cache-Control', 'private, max-age=3600');
+        } catch (\Exception $e) {
+            Log::error('Preview error: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Delete file
      * DELETE /api/vfs/files/{id}
      */

@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/files', [App\Http\Controllers\Api\VirtualFilesController::class, 'index']);
         Route::post('/upload', [App\Http\Controllers\Api\VirtualFilesController::class, 'upload']);
         Route::get('/download/{id}', [App\Http\Controllers\Api\VirtualFilesController::class, 'download']);
+        Route::get('/preview/{id}', [App\Http\Controllers\Api\VirtualFilesController::class, 'preview']);
         Route::delete('/files/{id}', [App\Http\Controllers\Api\VirtualFilesController::class, 'destroy']);
         Route::post('/sync', [App\Http\Controllers\Api\VirtualFilesController::class, 'sync']);
         Route::post('/create-folder', [App\Http\Controllers\Api\VirtualFilesController::class, 'createFolder']);

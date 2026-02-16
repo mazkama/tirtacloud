@@ -115,4 +115,14 @@ class GoogleDriveService
         $service = $this->getDriveService();
         return $service->files->get($fileId, ['fields' => 'id, name, mimeType, size, webViewLink, webContentLink']);
     }
+
+    /**
+     * Get file content for streaming/preview
+     */
+    public function getFileContent($fileId)
+    {
+        $service = $this->getDriveService();
+        $response = $service->files->get($fileId, ['alt' => 'media']);
+        return $response->getBody()->getContents();
+    }
 }
