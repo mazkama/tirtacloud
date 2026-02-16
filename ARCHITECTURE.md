@@ -87,10 +87,39 @@ INDEX idx_user_parent (user_id, parent_virtual_id)
 
 ## Backend Architecture
 
+### Virtual Filesystem Concept
+
+**Important:** TirtaCloud VFS is a **private folder system**, not a mirror of Google Drive.
+
+**What this means:**
+- VFS only tracks files **uploaded through TirtaCloud**
+- Users do NOT see their entire Google Drive contents
+- No background sync of all Google Drive files
+- Clear separation between TirtaCloud files and personal Google Drive files
+
+**Example:**
+```
+User's Google Drive:
+├── Personal/vacation.jpg     ← NOT visible in TirtaCloud
+├── Work/report.docx          ← NOT visible in TirtaCloud
+└── TirtaCloud/
+    ├── uploaded_file1.pdf    ← Visible in TirtaCloud VFS
+    └── uploaded_file2.jpg    ← Visible in TirtaCloud VFS
+
+TirtaCloud VFS (User's View):
+/
+├── Documents/
+│   └── uploaded_file1.pdf
+└── Images/
+    └── uploaded_file2.jpg
+```
+
 ### Service Layer
 
 #### VirtualFilesystemService
-**Responsibilities:** List files, create entries, navigate folders, delete files, sync from Google Drive
+**Responsibilities:** List files, create entries, navigate folders, delete files
+
+**Note:** syncFolder() is deprecated - VFS is upload-only
 
 #### UploadBalancerService
 **Responsibilities:** Select account with most free space, update storage usage
@@ -145,11 +174,13 @@ GET  /api/user
 ```
 GET    /api/vfs/files?path={path}
 POST   /api/vfs/upload
+GET    /api/vfs/preview/{id}      # NEW: Stream file for inline preview
 GET    /api/vfs/download/{id}
 DELETE /api/vfs/files/{id}
-POST   /api/vfs/sync
 POST   /api/vfs/create-folder
 ```
+
+**Note:** `/api/vfs/sync` is deprecated (VFS is upload-only)
 
 ### Storage
 ```
