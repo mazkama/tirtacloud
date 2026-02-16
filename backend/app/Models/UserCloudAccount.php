@@ -19,10 +19,18 @@ class UserCloudAccount extends Model
         'expires_at',
         'total_storage',
         'used_storage',
+        'is_active',
+        'root_folder_id',
     ];
 
     protected $casts = [
         'expires_at' => 'datetime',
+        'is_active' => 'boolean',
+    ];
+
+    protected $hidden = [
+        'access_token',
+        'refresh_token',
     ];
 
     // Encrypt tokens automatically
@@ -38,12 +46,17 @@ class UserCloudAccount extends Model
 
     protected function setRefreshTokenAttribute($value)
     {
-        $this->attributes['refresh_token'] = encrypt($value);
+        if ($value) {
+            $this->attributes['refresh_token'] = encrypt($value);
+        }
     }
 
     protected function getRefreshTokenAttribute($value)
     {
-        return decrypt($value);
+        if ($value) {
+            return decrypt($value);
+        }
+        return null;
     }
 
     public function user()
@@ -51,8 +64,8 @@ class UserCloudAccount extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function files()
+    public function virtualFiles()
     {
-        return $this->hasMany(File::class);
+        return $this->hasMany(VirtualFile::class, 'cloud_account_id');
     }
 }

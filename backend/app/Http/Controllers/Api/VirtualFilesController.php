@@ -102,8 +102,9 @@ class VirtualFilesController extends Controller
                 ->getClient()
                 ->setAccessToken($account->access_token);
 
-            // Upload to Google Drive
-            $driveFile = $this->driveService->uploadFile($file, null);
+            // Upload to Google Drive — INTO the TirtaCloud system folder
+            $driveFolderId = $account->root_folder_id ?: null;
+            $driveFile = $this->driveService->uploadFile($file, $driveFolderId);
 
             // Create virtual file entry (this is the ONLY way files enter VFS)
             $virtualFile = $this->vfsService->createVirtualFile($user, [

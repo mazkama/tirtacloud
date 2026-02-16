@@ -5,14 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\GoogleDriveService;
 use App\Models\UserCloudAccount;
-use Illuminate\Support\Facades\Auth;
-use Google\Service\Drive;
+use Illuminate\Support\Facades\Log;
 
 /**
  * DriveController
  * 
  * Handles Google Drive ACCOUNT MANAGEMENT only.
- * NO file listing, upload, delete, or download — all file ops go through VFS.
+ * On account link: auto-creates "TirtaCloud" folder for file isolation.
  */
 class DriveController extends Controller
 {
@@ -34,7 +33,10 @@ class DriveController extends Controller
     }
 
     /**
-     * Handle the OAuth callback and save account credentials
+     * Handle the OAuth callback:
+     * 1. Save account credentials
+     * 2. Auto-create "TirtaCloud" folder in Google Drive
+     * 3. Save folder ID for future uploads
      */
     public function callback(Request $request)
     {
@@ -47,10 +49,10 @@ class DriveController extends Controller
             $token = $this->driveService->handleCallback($code);
             
             if (isset($token['error'])) {
-                return response()->json(['error' => 'Google Auth Error: ' . $token['error_description']], 400);
+                return response()->json(['error' => 'Google Auth Error: ' . ($token['error_description'] ?? $token['error'])], 400);
             }
 
-            \Log::info('Google Token Received');
+            Log::info('Google Token Received');
             $this->driveService->setAccessToken($token);
 
             // Get user info from Google
@@ -60,6 +62,29 @@ class DriveController extends Controller
             // Get Storage Quota
             $about = $this->driveService->getDriveService()->about->get(['fields' => 'storageQuota']);
             $quota = $about->getStorageQuota();
+
+            // ====================================================
+            // AUTO-CREATE "TirtaCloud" FOLDER IN GOOGLE DRIVE
+            // This isolates all TirtaCloud uploads from personal files
+            // ====================================================
+            $rootFolderId = null;
+            try {
+                // Check if folder already exists
+                $existingFolderId = $this->driveService->findFolder('TirtaCloud');
+                
+                if ($existingFolderId) {
+                    $rootFolderId = $existingFolderId;
+                    Log::info('Found existing TirtaCloud folder: ' . $rootFolderId);
+                } else {
+                    // Create new folder
+                    $folder = $this->driveService->createFolder('TirtaCloud');
+                    $rootFolderId = $folder->getId();
+                    Log::info('Created TirtaCloud folder: ' . $rootFolderId);
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to create TirtaCloud folder: ' . $e->getMessage());
+                // Don't fail the account link — folder can be created later
+            }
 
             // Save account — support multiple accounts per user
             $account = UserCloudAccount::updateOrCreate(
@@ -76,23 +101,23 @@ class DriveController extends Controller
                     'total_storage' => $quota->limit,
                     'used_storage' => $quota->usage,
                     'is_active' => true,
+                    'root_folder_id' => $rootFolderId,
                 ]
             );
 
             return response()->json([
                 'message' => 'Account linked successfully',
-                'account' => $account
+                'account' => [
+                    'id' => $account->id,
+                    'email' => $account->account_email,
+                    'name' => $account->account_name,
+                    'root_folder_created' => !empty($rootFolderId),
+                ],
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Google Drive Callback Error: ' . $e->getMessage());
+            Log::error('Google Drive Callback Error: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to link account: ' . $e->getMessage()], 500);
         }
     }
-
-    // ==========================================================
-    // REMOVED: listFiles, upload, delete, getDownloadUrl
-    // All file operations now go through VirtualFilesController.
-    // This ensures ONLY files uploaded through TirtaCloud are visible.
-    // ==========================================================
 }
