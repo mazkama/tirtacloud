@@ -31,39 +31,47 @@ class DriveController extends Controller
             return response()->json(['error' => 'Authorization code required'], 400);
         }
 
-        $token = $this->driveService->handleCallback($code);
-        $this->driveService->setAccessToken($token);
+        try {
+            $token = $this->driveService->handleCallback($code);
+            
+            if (isset($token['error'])) {
+                return response()->json(['error' => 'Google Auth Error: ' . $token['error_description']], 400);
+            }
 
-        // Get user info from Google
-        $googleUser = $this->driveService->getUserInfo(); // Need to implement getUserInfo in Service if not exists, or do it here
-        // Actually, let's use the Oauth2 service inside Service class
+            \Log::info('Google Token Received: ', $token);
+            $this->driveService->setAccessToken($token);
 
-        // Initialize User Info
-        $oauth2 = new \Google\Service\Oauth2($this->driveService->getDriveService()->getClient());
-        $userInfo = $oauth2->userinfo->get();
-        
-        // Get Storage Quota
-        $about = $this->driveService->getDriveService()->about->get(['fields' => 'storageQuota']);
-        $quota = $about->getStorageQuota();
+            // Get user info from Google
+            $oauth2 = new \Google\Service\Oauth2($this->driveService->getDriveService()->getClient());
+            $userInfo = $oauth2->userinfo->get();
+            
+            // Get Storage Quota
+            $about = $this->driveService->getDriveService()->about->get(['fields' => 'storageQuota']);
+            $quota = $about->getStorageQuota();
 
-        // Save account
-        $account = UserCloudAccount::updateOrCreate(
-            [
-                'user_id' => $request->user()->id,
-                'provider' => 'google',
-                'account_email' => $userInfo->email,
-            ],
-            [
-                'account_name' => $userInfo->name,
-                'access_token' => $token['access_token'],
-                'refresh_token' => $token['refresh_token'] ?? null, // Refresh token only comes on first consent
-                'expires_at' => now()->addSeconds($token['expires_in']),
-                'total_storage' => $quota->limit,
-                'used_storage' => $quota->usage,
-            ]
-        );
+            // Save account
+            $account = UserCloudAccount::updateOrCreate(
+                [
+                    'user_id' => $request->user()->id,
+                    'provider' => 'google',
+                    'account_email' => $userInfo->email,
+                ],
+                [
+                    'account_name' => $userInfo->name,
+                    'access_token' => $token['access_token'],
+                    'refresh_token' => $token['refresh_token'] ?? null, // Refresh token only comes on first consent
+                    'expires_at' => now()->addSeconds($token['expires_in']),
+                    'total_storage' => $quota->limit,
+                    'used_storage' => $quota->usage,
+                ]
+            );
 
-        return response()->json(['message' => 'Account linked successfully', 'account' => $account]);
+            return response()->json(['message' => 'Account linked successfully', 'account' => $account]);
+
+        } catch (\Exception $e) {
+            \Log::error('Google Drive Callback Error: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to link account: ' . $e->getMessage()], 500);
+        }
     }
 
     public function listFiles(Request $request)
@@ -78,16 +86,32 @@ class DriveController extends Controller
 
         // Refresh token if needed
         if ($account->expires_at->isPast()) {
-           // Implement refresh logic here or in service.
-           // For now assuming token is valid or we handle refresh.
-           // TODO: Add refresh logic
+            if ($account->refresh_token) {
+                try {
+                    $newToken = $this->driveService->refreshToken($account->refresh_token);
+                    $account->update([
+                        'access_token' => $newToken['access_token'],
+                        'expires_at' => now()->addSeconds($newToken['expires_in'])
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Token refresh failed: ' . $e->getMessage());
+                    return response()->json(['error' => 'Token expired. Please re-link your account.'], 401);
+                }
+            } else {
+                return response()->json(['error' => 'Token expired. Please re-link your account.'], 401);
+            }
         }
 
-        $this->driveService->getDriveService()->getClient()->setAccessToken($account->access_token);
-        
-        $files = $this->driveService->listFiles($request->folder_id);
-        
-        return response()->json($files->getFiles());
+        try {
+            $this->driveService->getDriveService()->getClient()->setAccessToken($account->access_token);
+            
+            $files = $this->driveService->listFiles($request->folder_id);
+            
+            return response()->json(['files' => $files->getFiles()]);
+        } catch (\Exception $e) {
+            \Log::error('List files error: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to fetch files: ' . $e->getMessage()], 500);
+        }
     }
 
     public function upload(Request $request)

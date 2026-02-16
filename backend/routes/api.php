@@ -19,6 +19,9 @@ use App\Http\Controllers\DriveController;
 // Public Routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/login', function() {
+    return response()->json(['error' => 'Unauthenticated'], 401);
+})->name('login');
 
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -32,4 +35,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/drive/upload', [DriveController::class, 'upload']);
     Route::delete('/drive/files/{fileId}', [DriveController::class, 'delete']);
     Route::get('/drive/files/{fileId}/download', [DriveController::class, 'getDownloadUrl']);
+    
+    // Virtual Filesystem Routes
+    Route::prefix('vfs')->group(function () {
+        Route::get('/files', [App\Http\Controllers\Api\VirtualFilesController::class, 'index']);
+        Route::post('/upload', [App\Http\Controllers\Api\VirtualFilesController::class, 'upload']);
+        Route::get('/download/{id}', [App\Http\Controllers\Api\VirtualFilesController::class, 'download']);
+        Route::delete('/files/{id}', [App\Http\Controllers\Api\VirtualFilesController::class, 'destroy']);
+        Route::post('/sync', [App\Http\Controllers\Api\VirtualFilesController::class, 'sync']);
+        Route::post('/create-folder', [App\Http\Controllers\Api\VirtualFilesController::class, 'createFolder']);
+    });
+    
+    // Storage Stats Routes
+    Route::prefix('storage')->group(function () {
+        Route::get('/stats', [App\Http\Controllers\Api\StorageController::class, 'stats']);
+        Route::get('/accounts', [App\Http\Controllers\Api\StorageController::class, 'accounts']);
+    });
 });

@@ -48,3 +48,26 @@ php artisan test
 
 ### Frontend Tests
 (To be implemented in Phase 2 using Cypress/Playwright)
+
+## Troubleshooting
+
+### Google OAuth: 403 Access Denied
+**Error**: `Error 403: access_denied` (The developer hasn't completed the verification process).
+**Cause**: The Google Cloud Project is in **Testing** mode and the logging-in email is not in the "Test Users" list.
+**Fix**:
+1.  Go to [Google Cloud Console > OAuth Consent Screen](https://console.cloud.google.com/apis/credentials/consent).
+2.  Add your email to the **"Test Users"** list.
+3.  Save and retry.
+
+### Enabling Access for Any Google Account
+**Current State**: Your app is in **Testing** mode (restricted to Test Users).
+**Solution**: To allow *anyone* with a Google account to log in:
+
+1.  Go to [Google Cloud Console > OAuth Consent Screen](https://console.cloud.google.com/apis/credentials/consent).
+2.  Click the **PUBLISH APP** button under **Publishing Status**.
+3.  Confirm to push to **Production**.
+
+**Warning**: 
+-   Since this app uses sensitive scopes (`drive` and `drive.metadata.readonly`), users will see a **"Google hasn't verified this app"** warning screen.
+-   They can bypass this by clicking **Advanced > Go to tirtacloud.mazkama.web.id (unsafe)**.
+-   To remove the warning, you must submit the app for Google Verification (takes days/weeks).

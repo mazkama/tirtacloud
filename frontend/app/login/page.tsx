@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -24,7 +25,7 @@ export default function LoginPage() {
             await api.get('/sanctum/csrf-cookie', {
                 baseURL: process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '')
             });
-            const response = await api.post('/api/login', { email, password });
+            const response = await api.post('/login', { email, password });
             localStorage.setItem('token', response.data.access_token);
             router.push('/dashboard');
         } catch (err: any) {
@@ -82,11 +83,18 @@ export default function LoginPage() {
                                     className="dark:bg-[#0a0a0a]"
                                 />
                             </div>
-                            {error && (
-                                <div className="p-3 rounded-md bg-red-50 text-red-500 text-sm dark:bg-red-900/20 dark:text-red-400">
-                                    {error}
-                                </div>
-                            )}
+                            <AnimatePresence>
+                                {error && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        className="p-3 rounded-md bg-red-50 text-red-500 text-sm dark:bg-red-900/20 dark:text-red-400"
+                                    >
+                                        {error}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                             <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white" disabled={loading}>
                                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Login'}
                             </Button>

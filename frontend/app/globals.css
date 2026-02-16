@@ -3,13 +3,17 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Inter',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+  --font-mono: 'JetBrains Mono',
+    monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -65,6 +69,6 @@ body {
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-image: linear-gradient(to right, #c084fc, #db2777); 
+    background-image: linear-gradient(to right, #c084fc, #db2777);
   }
 }

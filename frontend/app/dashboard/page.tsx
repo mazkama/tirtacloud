@@ -43,7 +43,7 @@ export default function DashboardPage() {
 
     const fetchFiles = async () => {
         try {
-            const response = await api.get('/api/drive/files');
+            const response = await api.get('/drive/files');
             setFiles(response.data.files || []);
         } catch (error) {
             console.error('Failed to fetch files', error);

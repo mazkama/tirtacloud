@@ -20,6 +20,9 @@ class GoogleDriveService
         $this->client->setPrompt('consent'); // Force consent to get refresh token
         $this->client->addScope(Drive::DRIVE);
         $this->client->addScope(Drive::DRIVE_METADATA_READONLY);
+        $this->client->addScope('email');
+        $this->client->addScope('profile');
+        $this->client->addScope('openid');
     }
 
     public function getAuthUrl()

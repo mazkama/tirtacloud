@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import api from '@/lib/axios';
+import { useAuth } from '@/hooks/useAuth';
 import {
     LayoutDashboard,
     Cloud,
@@ -12,7 +12,9 @@ import {
     LogOut,
     Menu,
     X,
-    User as UserIcon
+    User as UserIcon,
+    Files,
+    HardDrive
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -23,43 +25,39 @@ export default function DashboardLayout({
 }) {
     const router = useRouter();
     const pathname = usePathname();
-    const [user, setUser] = useState<any>(null);
+    const { user, logout, loading } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+    // Redirect to login if not authenticated
     useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const response = await api.get('/api/user');
-                setUser(response.data);
-            } catch (error) {
-                localStorage.removeItem('token');
-                router.push('/login');
-            }
-        };
-        fetchUser();
-    }, [router]);
+        if (!loading && !user) {
+            router.push('/login');
+        }
+    }, [user, loading, router]);
 
     const handleLogout = async () => {
-        try {
-            await api.post('/api/logout');
-            localStorage.removeItem('token');
-            router.push('/login');
-        } catch (error) {
-            console.error('Logout failed', error);
-        }
+        await logout();
     };
 
-    const navItems = [
-        { name: 'My Files', href: '/dashboard', icon: LayoutDashboard },
-        { name: 'Drive Accounts', href: '/dashboard/drive', icon: Cloud },
-        { name: 'Settings', href: '#', icon: Settings }, // Placeholder
-    ];
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            </div>
+        );
+    }
 
-    if (!user) return (
-        <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-black">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-        </div>
-    );
+    if (!user) {
+        return null;
+    }
+
+    const navItems = [
+        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        { name: 'Files', href: '/dashboard/files', icon: Files },
+        { name: 'Storage', href: '/dashboard/storage', icon: HardDrive },
+        { name: 'Accounts', href: '/dashboard/accounts', icon: Cloud },
+        { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+    ];
 
     return (
         <div className="flex h-screen bg-gray-50 dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 overflow-hidden">
@@ -73,8 +71,8 @@ export default function DashboardLayout({
 
             {/* Sidebar */}
             <aside className={cn(
-                "fixed md:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#111] border-r border-gray-200 dark:border-gray-800 transform transition-transform duration-200 ease-in-out md:transform-none",
-                isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                "fixed md:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#111] border-r border-gray-200 dark:border-gray-800 transform transition-transform duration-200 ease-in-out",
+                isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
             )}>
                 <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-gray-800">
                     <div className="font-bold text-xl tracking-tight">

@@ -15,7 +15,7 @@ function CallbackContent() {
             processed.current = true;
             const exchangeCode = async () => {
                 try {
-                    await api.post('/api/drive/callback', { code });
+                    await api.post('/drive/callback', { code });
                     router.push('/dashboard');
                 } catch (error) {
                     console.error('Failed to exchange code', error);
