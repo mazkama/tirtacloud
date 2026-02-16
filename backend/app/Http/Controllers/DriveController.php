@@ -8,6 +8,12 @@ use App\Models\UserCloudAccount;
 use Illuminate\Support\Facades\Auth;
 use Google\Service\Drive;
 
+/**
+ * DriveController
+ * 
+ * Handles Google Drive ACCOUNT MANAGEMENT only.
+ * NO file listing, upload, delete, or download — all file ops go through VFS.
+ */
 class DriveController extends Controller
 {
     protected $driveService;
@@ -17,6 +23,9 @@ class DriveController extends Controller
         $this->driveService = $driveService;
     }
 
+    /**
+     * Get the Google OAuth URL for linking a new account
+     */
     public function getAuthUrl()
     {
         return response()->json([
@@ -24,6 +33,9 @@ class DriveController extends Controller
         ]);
     }
 
+    /**
+     * Handle the OAuth callback and save account credentials
+     */
     public function callback(Request $request)
     {
         $code = $request->code;
@@ -38,7 +50,7 @@ class DriveController extends Controller
                 return response()->json(['error' => 'Google Auth Error: ' . $token['error_description']], 400);
             }
 
-            \Log::info('Google Token Received: ', $token);
+            \Log::info('Google Token Received');
             $this->driveService->setAccessToken($token);
 
             // Get user info from Google
@@ -49,7 +61,7 @@ class DriveController extends Controller
             $about = $this->driveService->getDriveService()->about->get(['fields' => 'storageQuota']);
             $quota = $about->getStorageQuota();
 
-            // Save account
+            // Save account — support multiple accounts per user
             $account = UserCloudAccount::updateOrCreate(
                 [
                     'user_id' => $request->user()->id,
@@ -59,14 +71,18 @@ class DriveController extends Controller
                 [
                     'account_name' => $userInfo->name,
                     'access_token' => $token['access_token'],
-                    'refresh_token' => $token['refresh_token'] ?? null, // Refresh token only comes on first consent
+                    'refresh_token' => $token['refresh_token'] ?? null,
                     'expires_at' => now()->addSeconds($token['expires_in']),
                     'total_storage' => $quota->limit,
                     'used_storage' => $quota->usage,
+                    'is_active' => true,
                 ]
             );
 
-            return response()->json(['message' => 'Account linked successfully', 'account' => $account]);
+            return response()->json([
+                'message' => 'Account linked successfully',
+                'account' => $account
+            ]);
 
         } catch (\Exception $e) {
             \Log::error('Google Drive Callback Error: ' . $e->getMessage());
@@ -74,107 +90,9 @@ class DriveController extends Controller
         }
     }
 
-    public function listFiles(Request $request)
-    {
-        $user = $request->user();
-        // For Phase 1, just list from first account
-        $account = $user->cloudAccounts()->where('provider', 'google')->first();
-        
-        if (!$account) {
-            return response()->json(['error' => 'No Google Drive account linked'], 404);
-        }
-
-        // Refresh token if needed
-        if ($account->expires_at->isPast()) {
-            if ($account->refresh_token) {
-                try {
-                    $newToken = $this->driveService->refreshToken($account->refresh_token);
-                    $account->update([
-                        'access_token' => $newToken['access_token'],
-                        'expires_at' => now()->addSeconds($newToken['expires_in'])
-                    ]);
-                } catch (\Exception $e) {
-                    \Log::error('Token refresh failed: ' . $e->getMessage());
-                    return response()->json(['error' => 'Token expired. Please re-link your account.'], 401);
-                }
-            } else {
-                return response()->json(['error' => 'Token expired. Please re-link your account.'], 401);
-            }
-        }
-
-        try {
-            $this->driveService->getDriveService()->getClient()->setAccessToken($account->access_token);
-            
-            $files = $this->driveService->listFiles($request->folder_id);
-            
-            return response()->json(['files' => $files->getFiles()]);
-        } catch (\Exception $e) {
-            \Log::error('List files error: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to fetch files: ' . $e->getMessage()], 500);
-        }
-    }
-
-    public function upload(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|file',
-            'folder_id' => 'nullable|string'
-        ]);
-
-        $user = $request->user();
-        $account = $user->cloudAccounts()->where('provider', 'google')->first();
-        
-        if (!$account) {
-            return response()->json(['error' => 'No Google Drive account linked'], 404);
-        }
-
-        $this->driveService->getDriveService()->getClient()->setAccessToken($account->access_token);
-        
-        // Refresh check skipped for brevity, should be added in production
-        if ($this->driveService->getDriveService()->getClient()->isAccessTokenExpired()) {
-             // Logic to refresh token using $account->refresh_token
-             if ($account->refresh_token) {
-                 $newToken = $this->driveService->refreshToken($account->refresh_token);
-                 $account->update(['access_token' => $newToken['access_token']]);
-             }
-        }
-
-        $file = $this->driveService->uploadFile($request->file('file'), $request->folder_id);
-
-        return response()->json(['message' => 'File uploaded successfully', 'file' => $file]);
-    }
-
-    public function delete($fileId, Request $request)
-    {
-        $user = $request->user();
-        $account = $user->cloudAccounts()->where('provider', 'google')->first();
-
-        if (!$account) {
-            return response()->json(['error' => 'No Google Drive account linked'], 404);
-        }
-
-        $this->driveService->getDriveService()->getClient()->setAccessToken($account->access_token);
-        
-        if ($this->driveService->deleteFile($fileId)) {
-            return response()->json(['message' => 'File deleted successfully']);
-        }
-
-        return response()->json(['error' => 'Failed to delete file'], 500);
-    }
-
-    public function getDownloadUrl($fileId, Request $request)
-    {
-        $user = $request->user();
-        $account = $user->cloudAccounts()->where('provider', 'google')->first();
-
-        if (!$account) {
-            return response()->json(['error' => 'No Google Drive account linked'], 404);
-        }
-
-        $this->driveService->getDriveService()->getClient()->setAccessToken($account->access_token);
-        
-        $file = $this->driveService->getFileDetails($fileId);
-        
-        return response()->json(['url' => $file->webContentLink]);
-    }
+    // ==========================================================
+    // REMOVED: listFiles, upload, delete, getDownloadUrl
+    // All file operations now go through VirtualFilesController.
+    // This ensures ONLY files uploaded through TirtaCloud are visible.
+    // ==========================================================
 }

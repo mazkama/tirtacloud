@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Services\VirtualFilesystemService;
 use App\Services\UploadBalancerService;
 use App\Services\GoogleDriveService;
+use App\Models\VirtualFile;
+use App\Models\UserCloudAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -26,7 +28,7 @@ class VirtualFilesController extends Controller
     }
 
     /**
-     * List files in virtual path
+     * List files in virtual path — ONLY files uploaded through TirtaCloud
      * GET /api/vfs/files?path=/Documents
      */
     public function index(Request $request)
@@ -48,7 +50,7 @@ class VirtualFilesController extends Controller
     }
 
     /**
-     * Upload file with auto-balancing
+     * Upload file with auto-balancing to Google Drive with most free space
      * POST /api/vfs/upload
      */
     public function upload(Request $request)
@@ -64,8 +66,11 @@ class VirtualFilesController extends Controller
         $fileSize = $file->getSize();
 
         try {
-            // Select best account
+            // Select best account (most free space)
             $account = $this->uploadBalancer->selectAccountForUpload($user, $fileSize);
+            
+            // Refresh token if needed
+            $this->refreshTokenIfNeeded($account);
             
             // Set access token
             $this->driveService->getDriveService()
@@ -75,7 +80,7 @@ class VirtualFilesController extends Controller
             // Upload to Google Drive
             $driveFile = $this->driveService->uploadFile($file, null);
 
-            // Create virtual file entry
+            // Create virtual file entry (this is the ONLY way files enter VFS)
             $virtualFile = $this->vfsService->createVirtualFile($user, [
                 'cloud_account_id' => $account->id,
                 'parent_virtual_id' => $request->parent_id,
@@ -90,7 +95,7 @@ class VirtualFilesController extends Controller
                 ],
             ]);
 
-            // Update storage usage
+            // Update storage usage on the account
             $this->uploadBalancer->updateStorageUsage($account, $fileSize);
 
             return response()->json([
@@ -108,20 +113,24 @@ class VirtualFilesController extends Controller
     }
 
     /**
-     * Download file
+     * Download file — user must own the file
      * GET /api/vfs/download/{id}
      */
-    public function download($id)
+    public function download(Request $request, $id)
     {
         try {
-            $virtualFile = \App\Models\VirtualFile::with('cloudAccount')->findOrFail($id);
+            $virtualFile = VirtualFile::with('cloudAccount')
+                ->where('id', $id)
+                ->where('user_id', $request->user()->id)
+                ->firstOrFail();
             
-            // Set access token
+            // Refresh token if needed
+            $this->refreshTokenIfNeeded($virtualFile->cloudAccount);
+
             $this->driveService->getDriveService()
                 ->getClient()
                 ->setAccessToken($virtualFile->cloudAccount->access_token);
 
-            // Get file details
             $fileDetails = $this->driveService->getFileDetails($virtualFile->cloud_file_id);
 
             return response()->json([
@@ -135,24 +144,24 @@ class VirtualFilesController extends Controller
     }
 
     /**
-     * Preview/Stream file (PDF, images, videos)
+     * Preview / stream file (PDF, images, videos) — user must own the file
      * GET /api/vfs/preview/{id}
      */
     public function preview(Request $request, $id)
     {
         try {
-            // Verify user owns this file
-            $virtualFile = \App\Models\VirtualFile::with('cloudAccount')
+            $virtualFile = VirtualFile::with('cloudAccount')
                 ->where('id', $id)
                 ->where('user_id', $request->user()->id)
                 ->firstOrFail();
             
-            // Set access token
+            // Refresh token if needed
+            $this->refreshTokenIfNeeded($virtualFile->cloudAccount);
+
             $this->driveService->getDriveService()
                 ->getClient()
                 ->setAccessToken($virtualFile->cloudAccount->access_token);
 
-            // Stream file content from Google Drive
             $fileContent = $this->driveService->getFileContent($virtualFile->cloud_file_id);
 
             return response($fileContent)
@@ -166,20 +175,35 @@ class VirtualFilesController extends Controller
     }
 
     /**
-     * Delete file
+     * Delete file — user must own the file
      * DELETE /api/vfs/files/{id}
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
-            $virtualFile = \App\Models\VirtualFile::findOrFail($id);
+            $virtualFile = VirtualFile::with('cloudAccount')
+                ->where('id', $id)
+                ->where('user_id', $request->user()->id)
+                ->firstOrFail();
+
             $fileSize = $virtualFile->size;
-            $accountId = $virtualFile->cloud_account_id;
+            $account = $virtualFile->cloudAccount;
 
-            $this->vfsService->deleteVirtualFile($id);
+            // Delete from Google Drive
+            try {
+                $this->refreshTokenIfNeeded($account);
+                $this->driveService->getDriveService()
+                    ->getClient()
+                    ->setAccessToken($account->access_token);
+                $this->driveService->deleteFile($virtualFile->cloud_file_id);
+            } catch (\Exception $e) {
+                Log::warning('Could not delete from Google Drive: ' . $e->getMessage());
+            }
 
-            // Update storage usage
-            $account = \App\Models\UserCloudAccount::find($accountId);
+            // Delete from VFS
+            $virtualFile->delete();
+
+            // Decrement storage usage
             if ($account) {
                 $this->uploadBalancer->decrementStorageUsage($account, $fileSize);
             }
@@ -192,34 +216,7 @@ class VirtualFilesController extends Controller
     }
 
     /**
-     * Trigger manual sync
-     * POST /api/vfs/sync
-     */
-    public function sync(Request $request)
-    {
-        $request->validate([
-            'account_id' => 'required|integer',
-        ]);
-
-        try {
-            $account = \App\Models\UserCloudAccount::where('id', $request->account_id)
-                ->where('user_id', $request->user()->id)
-                ->firstOrFail();
-
-            $syncedCount = $this->vfsService->syncFolder($account);
-
-            return response()->json([
-                'message' => 'Sync completed',
-                'files_synced' => $syncedCount,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Sync error: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
-
-    /**
-     * Create folder
+     * Create a virtual folder
      * POST /api/vfs/create-folder
      */
     public function createFolder(Request $request)
@@ -227,15 +224,27 @@ class VirtualFilesController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'parent_id' => 'nullable|integer',
-            'cloud_account_id' => 'required|integer',
         ]);
 
+        $user = $request->user();
+
         try {
+            // Get first active account (folder is virtual, no Drive API needed)
+            $account = UserCloudAccount::where('user_id', $user->id)
+                ->where('is_active', true)
+                ->first();
+
+            if (!$account) {
+                return response()->json([
+                    'error' => 'No cloud account linked. Please connect a Google Drive account first.'
+                ], 400);
+            }
+
             $folder = $this->vfsService->createFolder(
-                $request->user(),
+                $user,
                 $request->name,
                 $request->parent_id,
-                $request->cloud_account_id
+                $account->id
             );
 
             return response()->json([
@@ -245,6 +254,27 @@ class VirtualFilesController extends Controller
         } catch (\Exception $e) {
             Log::error('Create folder error: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Helper: refresh Google OAuth token if expired
+     */
+    private function refreshTokenIfNeeded(UserCloudAccount $account): void
+    {
+        if ($account->expires_at && $account->expires_at->isPast()) {
+            if ($account->refresh_token) {
+                try {
+                    $newToken = $this->driveService->refreshToken($account->refresh_token);
+                    $account->update([
+                        'access_token' => $newToken['access_token'],
+                        'expires_at' => now()->addSeconds($newToken['expires_in'] ?? 3600),
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Token refresh failed: ' . $e->getMessage());
+                    throw new \Exception('Token expired. Please re-link your Google Drive account.');
+                }
+            }
         }
     }
 }

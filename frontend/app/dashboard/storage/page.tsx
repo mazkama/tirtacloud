@@ -44,8 +44,6 @@ export default function StoragePage() {
     const { user } = useAuth();
     const [stats, setStats] = useState<StorageStats | null>(null);
     const [loading, setLoading] = useState(true);
-    const [syncing, setSyncing] = useState<number | null>(null);
-
     useEffect(() => {
         fetchStats();
     }, []);
@@ -59,18 +57,6 @@ export default function StoragePage() {
             console.error('Failed to fetch storage stats', error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleSync = async (accountId: number) => {
-        try {
-            setSyncing(accountId);
-            await api.post('/vfs/sync', { account_id: accountId });
-            await fetchStats();
-        } catch (error) {
-            console.error('Sync failed', error);
-        } finally {
-            setSyncing(null);
         }
     };
 
@@ -182,21 +168,14 @@ export default function StoragePage() {
                     {stats.accounts.map((account) => (
                         <Card key={account.id}>
                             <CardHeader>
-                                <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Cloud className="h-5 w-5 text-blue-500" />
                                     <div>
                                         <CardTitle className="text-lg">{account.name || account.email}</CardTitle>
                                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                                             {account.email}
                                         </p>
                                     </div>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleSync(account.id)}
-                                        disabled={syncing === account.id}
-                                    >
-                                        <RefreshCw className={`h-4 w-4 ${syncing === account.id ? 'animate-spin' : ''}`} />
-                                    </Button>
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-4">

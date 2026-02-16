@@ -8,21 +8,20 @@ use App\Models\UserCloudAccount;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * VirtualFilesystemService
+ * 
+ * Manages the private virtual filesystem.
+ * ONLY files uploaded through TirtaCloud are tracked here.
+ * NO sync from Google Drive — this is intentional.
+ */
 class VirtualFilesystemService
 {
-    protected $googleDriveService;
-
-    public function __construct(GoogleDriveService $googleDriveService)
-    {
-        $this->googleDriveService = $googleDriveService;
-    }
-
     /**
-     * List files in a virtual path
+     * List files in a virtual path — only files uploaded through system
      */
     public function listFiles(User $user, string $virtualPath = '/')
     {
-        // Normalize path
         $virtualPath = $this->normalizePath($virtualPath);
         
         // Get parent folder
@@ -38,17 +37,17 @@ class VirtualFilesystemService
             }
         }
 
-        // List files in this path
+        // List files in this path — ONLY from virtual_files table
         return VirtualFile::forUser($user->id)
             ->where('parent_virtual_id', $parent ? $parent->id : null)
-            ->with('cloudAccount')
+            ->with('cloudAccount:id,account_email')
             ->orderBy('is_folder', 'desc')
             ->orderBy('name', 'asc')
             ->get();
     }
 
     /**
-     * Create a virtual file entry
+     * Create a virtual file entry after upload
      */
     public function createVirtualFile(User $user, array $fileData)
     {
@@ -79,65 +78,15 @@ class VirtualFilesystemService
     }
 
     /**
-     * Delete virtual file
-     */
-    public function deleteVirtualFile(int $virtualFileId)
-    {
-        $file = VirtualFile::findOrFail($virtualFileId);
-        
-        // If it's a folder, delete all children recursively
-        if ($file->is_folder) {
-            $this->deleteFolder($file);
-        }
-
-        // Delete from Google Drive
-        try {
-            $this->googleDriveService->getDriveService()
-                ->getClient()
-                ->setAccessToken($file->cloudAccount->access_token);
-            $this->googleDriveService->deleteFile($file->cloud_file_id);
-        } catch (\Exception $e) {
-            Log::error('Failed to delete from Google Drive: ' . $e->getMessage());
-        }
-
-        return $file->delete();
-    }
-
-    /**
-     * Sync folder from Google Drive
-     */
-    public function syncFolder(UserCloudAccount $account, string $folderId = null)
-    {
-        try {
-            // Set access token
-            $this->googleDriveService->getDriveService()
-                ->getClient()
-                ->setAccessToken($account->access_token);
-
-            // List files from Google Drive
-            $driveFiles = $this->googleDriveService->listFiles($folderId);
-            
-            $syncedCount = 0;
-            foreach ($driveFiles->getFiles() as $driveFile) {
-                $this->syncFile($account, $driveFile, $folderId);
-                $syncedCount++;
-            }
-
-            return $syncedCount;
-        } catch (\Exception $e) {
-            Log::error('Sync failed: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    /**
      * Create a virtual folder
      */
     public function createFolder(User $user, string $name, int $parentId = null, int $cloudAccountId)
     {
         $parentPath = '/';
         if ($parentId) {
-            $parent = VirtualFile::findOrFail($parentId);
+            $parent = VirtualFile::where('id', $parentId)
+                ->where('user_id', $user->id)
+                ->firstOrFail();
             $parentPath = $parent->virtual_path;
         }
 
@@ -150,60 +99,15 @@ class VirtualFilesystemService
             'parent_virtual_id' => $parentId,
             'name' => $name,
             'is_folder' => true,
-            'cloud_file_id' => '', // Will be set when created in Google Drive
+            'cloud_file_id' => 'virtual-folder-' . uniqid(),
             'size' => 0,
         ]);
     }
 
-    // Private helper methods
-
-    private function syncFile(UserCloudAccount $account, $driveFile, $parentFolderId)
-    {
-        // Check if file already exists
-        $virtualFile = VirtualFile::where('cloud_file_id', $driveFile->getId())
-            ->where('cloud_account_id', $account->id)
-            ->first();
-
-        $isFolder = $driveFile->getMimeType() === 'application/vnd.google-apps.folder';
-
-        // Determine parent
-        $parentVirtualId = null;
-        if ($parentFolderId) {
-            $parentVirtual = VirtualFile::where('cloud_file_id', $parentFolderId)
-                ->where('cloud_account_id', $account->id)
-                ->first();
-            $parentVirtualId = $parentVirtual ? $parentVirtual->id : null;
-        }
-
-        $parentPath = $parentVirtualId 
-            ? VirtualFile::find($parentVirtualId)->virtual_path 
-            : '/';
-        $virtualPath = $this->joinPaths($parentPath, $driveFile->getName());
-
-        $fileData = [
-            'user_id' => $account->user_id,
-            'cloud_account_id' => $account->id,
-            'virtual_path' => $virtualPath,
-            'parent_virtual_id' => $parentVirtualId,
-            'name' => $driveFile->getName(),
-            'mime_type' => $driveFile->getMimeType(),
-            'size' => $driveFile->getSize() ?? 0,
-            'is_folder' => $isFolder,
-            'cloud_file_id' => $driveFile->getId(),
-            'metadata' => [
-                'webViewLink' => $driveFile->getWebViewLink(),
-                'webContentLink' => $driveFile->getWebContentLink(),
-            ],
-        ];
-
-        if ($virtualFile) {
-            $virtualFile->update($fileData);
-        } else {
-            VirtualFile::create($fileData);
-        }
-    }
-
-    private function deleteFolder(VirtualFile $folder)
+    /**
+     * Delete virtual file and its children (for folders)
+     */
+    public function deleteFolder(VirtualFile $folder)
     {
         $children = VirtualFile::where('parent_virtual_id', $folder->id)->get();
         
@@ -215,6 +119,8 @@ class VirtualFilesystemService
         }
     }
 
+    // ========== Private Helper Methods ==========
+
     private function normalizePath(string $path): string
     {
         $path = trim($path);
@@ -222,12 +128,10 @@ class VirtualFilesystemService
             return '/';
         }
         
-        // Ensure starts with /
         if ($path[0] !== '/') {
             $path = '/' . $path;
         }
         
-        // Remove trailing slash
         $path = rtrim($path, '/');
         
         return $path;

@@ -10,9 +10,8 @@ use App\Http\Controllers\DriveController;
 | API Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
+| Virtual Filesystem (VFS) Private Routes
+| All file operations go through VFS — NO direct Google Drive file access.
 |
 */
 
@@ -28,23 +27,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'me']);
 
-    // Google Drive Routes
+    // Google Drive Account Management ONLY (no file listing!)
     Route::get('/drive/auth-url', [DriveController::class, 'getAuthUrl']);
     Route::post('/drive/callback', [DriveController::class, 'callback']);
-    Route::get('/drive/files', [DriveController::class, 'listFiles']);
-    Route::post('/drive/upload', [DriveController::class, 'upload']);
-    Route::delete('/drive/files/{fileId}', [DriveController::class, 'delete']);
-    Route::get('/drive/files/{fileId}/download', [DriveController::class, 'getDownloadUrl']);
+    // REMOVED: /drive/files — VFS is the only way to see files
+    // REMOVED: /drive/upload — use /vfs/upload instead
+    // REMOVED: /drive/files/{fileId} — use /vfs/files/{id} instead
+    // REMOVED: /drive/files/{fileId}/download — use /vfs/download/{id} instead
     
-    // Virtual Filesystem Routes
+    // Virtual Filesystem Routes (THE ONLY file access point)
     Route::prefix('vfs')->group(function () {
         Route::get('/files', [App\Http\Controllers\Api\VirtualFilesController::class, 'index']);
         Route::post('/upload', [App\Http\Controllers\Api\VirtualFilesController::class, 'upload']);
-        Route::get('/download/{id}', [App\Http\Controllers\Api\VirtualFilesController::class, 'download']);
         Route::get('/preview/{id}', [App\Http\Controllers\Api\VirtualFilesController::class, 'preview']);
+        Route::get('/download/{id}', [App\Http\Controllers\Api\VirtualFilesController::class, 'download']);
         Route::delete('/files/{id}', [App\Http\Controllers\Api\VirtualFilesController::class, 'destroy']);
-        Route::post('/sync', [App\Http\Controllers\Api\VirtualFilesController::class, 'sync']);
         Route::post('/create-folder', [App\Http\Controllers\Api\VirtualFilesController::class, 'createFolder']);
+        // REMOVED: /sync — VFS is upload-only, no sync from Google Drive
     });
     
     // Storage Stats Routes
