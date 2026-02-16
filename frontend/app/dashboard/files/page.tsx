@@ -33,8 +33,11 @@ import {
     Upload,
     Plus,
     ChevronRight,
-    Home
+    Home,
+    Eye
 } from 'lucide-react';
+import { UploadDialog } from '@/components/dashboard/UploadDialog';
+import { FilePreview } from '@/components/dashboard/FilePreview';
 
 interface VirtualFile {
     id: number;
@@ -53,6 +56,8 @@ export default function FilesPage() {
     const [loading, setLoading] = useState(true);
     const [currentPath, setCurrentPath] = useState('/');
     const [storageStats, setStorageStats] = useState<any>(null);
+    const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+    const [previewFile, setPreviewFile] = useState<VirtualFile | null>(null);
 
     useEffect(() => {
         fetchFiles();
@@ -110,6 +115,20 @@ export default function FilesPage() {
         }
     };
 
+    const handlePreview = (file: VirtualFile) => {
+        setPreviewFile(file);
+    };
+
+    const handleClosePreview = () => {
+        setPreviewFile(null);
+    };
+
+    const handleDownloadFromPreview = async () => {
+        if (previewFile) {
+            await handleDownload(previewFile.id);
+        }
+    };
+
     const getFileIcon = (file: VirtualFile) => {
         if (file.is_folder) return <Folder className="h-4 w-4 text-yellow-500" />;
         if (file.mime_type?.includes('image')) return <ImageIcon className="h-4 w-4 text-purple-500" />;
@@ -143,7 +162,10 @@ export default function FilesPage() {
             {/* Header with Breadcrumbs */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Files</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">My Files</h1>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Files uploaded through TirtaCloud
+                    </p>
                     <div className="flex items-center gap-2 mt-2 text-sm text-gray-600 dark:text-gray-400">
                         {getBreadcrumbs().map((crumb, index) => (
                             <div key={crumb.path} className="flex items-center gap-2">
@@ -163,9 +185,9 @@ export default function FilesPage() {
                         <Plus className="h-4 w-4 mr-2" />
                         New Folder
                     </Button>
-                    <Button>
+                    <Button onClick={() => setUploadDialogOpen(true)}>
                         <Upload className="h-4 w-4 mr-2" />
-                        Upload File
+                        Upload Files
                     </Button>
                 </div>
             </div>
@@ -253,12 +275,24 @@ export default function FilesPage() {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                    <DropdownMenuItem onClick={() => handleDownload(file.id)}>
+                                                    <DropdownMenuItem onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handlePreview(file);
+                                                    }}>
+                                                        <Eye className="mr-2 h-4 w-4" /> Preview
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDownload(file.id);
+                                                    }}>
                                                         <Download className="mr-2 h-4 w-4" /> Download
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
                                                     <DropdownMenuItem
-                                                        onClick={() => handleDelete(file.id)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDelete(file.id);
+                                                        }}
                                                         className="text-red-600"
                                                     >
                                                         <Trash2 className="mr-2 h-4 w-4" /> Delete
@@ -273,6 +307,25 @@ export default function FilesPage() {
                     </Table>
                 </div>
             )}
+
+            {/* Upload Dialog */}
+            <UploadDialog
+                open={uploadDialogOpen}
+                onClose={() => setUploadDialogOpen(false)}
+                currentPath={currentPath}
+                onUploadComplete={() => {
+                    fetchFiles();
+                    fetchStorageStats();
+                }}
+            />
+
+            {/* File Preview Dialog */}
+            <FilePreview
+                file={previewFile}
+                open={!!previewFile}
+                onClose={handleClosePreview}
+                onDownload={handleDownloadFromPreview}
+            />
         </div>
     );
 }
