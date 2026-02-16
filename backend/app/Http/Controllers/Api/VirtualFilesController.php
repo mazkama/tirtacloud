@@ -66,6 +66,31 @@ class VirtualFilesController extends Controller
         $fileSize = $file->getSize();
 
         try {
+            // Resolve parent folder ID
+            $parentId = $request->parent_id;
+            
+            // If parent_id not given but path is not root, resolve from path
+            if (!$parentId && $request->path && $request->path !== '/') {
+                $parentFolder = VirtualFile::forUser($user->id)
+                    ->where('virtual_path', $request->path)
+                    ->where('is_folder', true)
+                    ->first();
+                if ($parentFolder) {
+                    $parentId = $parentFolder->id;
+                }
+            }
+            
+            // If parent_id is set, verify the user owns it
+            if ($parentId) {
+                $parent = VirtualFile::where('id', $parentId)
+                    ->where('user_id', $user->id)
+                    ->where('is_folder', true)
+                    ->first();
+                if (!$parent) {
+                    return response()->json(['error' => 'Parent folder not found'], 404);
+                }
+            }
+
             // Select best account (most free space)
             $account = $this->uploadBalancer->selectAccountForUpload($user, $fileSize);
             
@@ -83,7 +108,7 @@ class VirtualFilesController extends Controller
             // Create virtual file entry (this is the ONLY way files enter VFS)
             $virtualFile = $this->vfsService->createVirtualFile($user, [
                 'cloud_account_id' => $account->id,
-                'parent_virtual_id' => $request->parent_id,
+                'parent_virtual_id' => $parentId,
                 'name' => $file->getClientOriginalName(),
                 'mime_type' => $file->getClientMimeType(),
                 'size' => $fileSize,
@@ -229,6 +254,17 @@ class VirtualFilesController extends Controller
         $user = $request->user();
 
         try {
+            // Validate parent folder ownership
+            if ($request->parent_id) {
+                $parent = VirtualFile::where('id', $request->parent_id)
+                    ->where('user_id', $user->id)
+                    ->where('is_folder', true)
+                    ->first();
+                if (!$parent) {
+                    return response()->json(['error' => 'Parent folder not found'], 404);
+                }
+            }
+
             // Get first active account (folder is virtual, no Drive API needed)
             $account = UserCloudAccount::where('user_id', $user->id)
                 ->where('is_active', true)
