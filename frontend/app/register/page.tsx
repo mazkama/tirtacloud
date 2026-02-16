@@ -23,8 +23,10 @@ export default function RegisterPage() {
         setError('');
         setLoading(true);
         try {
-            await api.get('/sanctum/csrf-cookie');
-            const response = await api.post('/api/register', {
+            await api.get('/sanctum/csrf-cookie', {
+                baseURL: process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '')
+            });
+            const response = await api.post('/register', {
                 name,
                 email,
                 password,

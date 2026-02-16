@@ -21,7 +21,9 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            await api.get('/sanctum/csrf-cookie');
+            await api.get('/sanctum/csrf-cookie', {
+                baseURL: process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '')
+            });
             const response = await api.post('/api/login', { email, password });
             localStorage.setItem('token', response.data.access_token);
             router.push('/dashboard');
