@@ -42,7 +42,11 @@ import {
     ChevronRight,
     Home,
     Eye,
-    ArrowLeft
+    ArrowLeft,
+    Share2,
+    Copy,
+    Check,
+    Link as LinkIcon
 } from 'lucide-react';
 import { FilePreview } from '@/components/dashboard/FilePreview';
 
@@ -88,6 +92,15 @@ export default function FilesPage() {
 
     // Preview state
     const [previewFile, setPreviewFile] = useState<VirtualFile | null>(null);
+
+    // Share state
+    const [shareDialogOpen, setShareDialogOpen] = useState(false);
+    const [shareUrl, setShareUrl] = useState('');
+    const [sharePreviewUrl, setSharePreviewUrl] = useState('');
+    const [shareDownloadUrl, setShareDownloadUrl] = useState('');
+    const [sharingFileId, setSharingFileId] = useState<number | null>(null);
+    const [sharing, setSharing] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         fetchFiles();
@@ -166,6 +179,42 @@ export default function FilesPage() {
             fetchStorageStats();
         } catch (error) {
             console.error('Delete failed', error);
+        }
+    };
+
+    // ===== Share =====
+    const handleShare = async (fileId: number) => {
+        setSharing(true);
+        setSharingFileId(fileId);
+        try {
+            const response = await api.post('/vfs/share', { file_id: fileId });
+            const link = response.data.share_link;
+            setShareUrl(link.url);
+            setSharePreviewUrl(link.preview_url);
+            setShareDownloadUrl(link.download_url);
+            setShareDialogOpen(true);
+        } catch (err: any) {
+            alert(err.response?.data?.error || 'Failed to create share link');
+        } finally {
+            setSharing(false);
+        }
+    };
+
+    const copyToClipboard = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            // Fallback
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
         }
     };
 
@@ -317,8 +366,8 @@ export default function FilesPage() {
                         <button
                             onClick={() => navigateToBreadcrumb(crumb)}
                             className={`px-1.5 py-0.5 rounded text-sm transition-colors ${i === breadcrumbs.length - 1
-                                    ? 'font-semibold text-purple-600 dark:text-purple-400'
-                                    : 'text-gray-500 hover:text-purple-600 dark:hover:text-purple-400'
+                                ? 'font-semibold text-purple-600 dark:text-purple-400'
+                                : 'text-gray-500 hover:text-purple-600 dark:hover:text-purple-400'
                                 }`}
                         >
                             {i === 0 ? (
@@ -426,6 +475,12 @@ export default function FilesPage() {
                                                             handleDownload(file.id);
                                                         }}>
                                                             <Download className="mr-2 h-4 w-4" /> Download
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleShare(file.id);
+                                                        }}>
+                                                            <Share2 className="mr-2 h-4 w-4" /> Share Link
                                                         </DropdownMenuItem>
                                                     </>
                                                 )}
@@ -578,6 +633,88 @@ export default function FilesPage() {
                 onClose={() => setPreviewFile(null)}
                 onDownload={async () => { if (previewFile) await handleDownload(previewFile.id); }}
             />
+
+            {/* ===== SHARE LINK DIALOG ===== */}
+            <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Share2 className="h-5 w-5 text-purple-500" />
+                            Share Link
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        {/* Main share URL */}
+                        <div>
+                            <label className="text-xs font-medium text-gray-500 mb-1 block">Share Page</label>
+                            <div className="flex gap-2">
+                                <Input
+                                    readOnly
+                                    value={shareUrl}
+                                    className="text-sm font-mono bg-gray-50 dark:bg-gray-800"
+                                />
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => copyToClipboard(shareUrl)}
+                                    className="shrink-0"
+                                >
+                                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Direct URLs */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-medium text-gray-500 mb-1 block">Direct Links (S3-style)</label>
+                            <div className="flex gap-2">
+                                <Input
+                                    readOnly
+                                    value={sharePreviewUrl}
+                                    className="text-xs font-mono bg-gray-50 dark:bg-gray-800"
+                                />
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => copyToClipboard(sharePreviewUrl)}
+                                    title="Copy preview URL"
+                                >
+                                    <LinkIcon className="h-3 w-3" />
+                                </Button>
+                            </div>
+                            <div className="flex gap-2">
+                                <Input
+                                    readOnly
+                                    value={shareDownloadUrl}
+                                    className="text-xs font-mono bg-gray-50 dark:bg-gray-800"
+                                />
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => copyToClipboard(shareDownloadUrl)}
+                                    title="Copy download URL"
+                                >
+                                    <Download className="h-3 w-3" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-3">
+                            <p className="text-xs text-blue-700 dark:text-blue-300">
+                                Anyone with this link can view and download the file. No login required.
+                            </p>
+                        </div>
+
+                        <Button
+                            className="w-full"
+                            size="sm"
+                            onClick={() => setShareDialogOpen(false)}
+                        >
+                            Done
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
