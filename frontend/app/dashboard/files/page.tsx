@@ -32,7 +32,8 @@ import {
     Download,
     LayoutGrid,
     List as ListIcon,
-    Loader2
+    Loader2,
+    CloudUpload
 } from 'lucide-react';
 import { FilePreview } from '@/components/dashboard/FilePreview';
 
@@ -87,6 +88,10 @@ export default function FilesPage() {
     const [sharingFileId, setSharingFileId] = useState<number | null>(null);
     const [sharing, setSharing] = useState(false);
     const [copied, setCopied] = useState(false);
+
+    // Drag & Drop state
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragCounter, setDragCounter] = useState(0);
 
     useEffect(() => {
         fetchFiles();
@@ -272,8 +277,70 @@ export default function FilesPage() {
         return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
     };
 
+    // ===== Drag & Drop Handlers =====
+    const handleDragEnter = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragCounter(prev => prev + 1);
+        if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+            setIsDragging(true);
+        }
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragCounter(prev => prev - 1);
+        if (dragCounter - 1 === 0) {
+            setIsDragging(false);
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        setDragCounter(0);
+
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            const files = Array.from(e.dataTransfer.files);
+            setUploadFiles(files);
+            setUploadDialogOpen(true);
+            setUploadError(null);
+            setUploadSuccess(null);
+        }
+    };
+
     return (
-        <div className="space-y-6">
+        <div
+            className="space-y-6 relative min-h-[500px]"
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+        >
+            {/* Drag Overlay */}
+            <AnimatePresence>
+                {isDragging && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 z-50 bg-purple-600/20 backdrop-blur-sm border-2 border-dashed border-purple-500 rounded-xl flex items-center justify-center pointer-events-none"
+                    >
+                        <div className="bg-[#0a0a0a] p-8 rounded-full shadow-2xl border border-purple-500/30 text-center">
+                            <CloudUpload className="h-16 w-16 text-purple-500 mx-auto mb-4 animate-bounce" />
+                            <h3 className="text-2xl font-bold text-white mb-2">Drop files to upload</h3>
+                            <p className="text-gray-400">Release to add files to {currentPath === '/' ? 'home' : 'current folder'}</p>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
             {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex-1 min-w-0">
