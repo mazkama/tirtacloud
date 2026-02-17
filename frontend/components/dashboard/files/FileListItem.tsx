@@ -29,9 +29,9 @@ interface VirtualFile {
     mime_type: string;
     size: number;
     is_folder: boolean;
-    virtual_path?: string;
-    parent_virtual_id?: number | null;
-    cloud_account_id?: number;
+    virtual_path: string;
+    parent_virtual_id: number | null;
+    cloud_account_id: number;
     created_at: string;
 }
 
