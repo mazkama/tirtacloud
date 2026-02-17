@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AppIcon } from '@/components/shared/AppIcon';
+import { GlassCard } from '@/components/shared/GlassCard';
+import { AnimatedButton } from '@/components/shared/AnimatedButton';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LoginPage() {
@@ -25,83 +25,120 @@ export default function LoginPage() {
         try {
             await login(email, password);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+            setError(err.response?.data?.message || 'Authentication failed. Please check your credentials.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-100 dark:bg-black">
-            {/* Left Side - Hero/Branding (Hidden on Mobile) */}
-            <div className="hidden lg:flex w-1/2 bg-black text-white items-center justify-center relative overflow-hidden">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-purple-600/20 blur-[100px] rounded-full pointer-events-none" />
-                <div className="z-10 text-center space-y-4 p-12">
-                    <h1 className="text-4xl font-bold tracking-tight">Welcome Back</h1>
-                    <p className="text-gray-400 max-w-md mx-auto">
-                        Access your unified cloud storage dashboard and manage your files efficiently.
-                    </p>
-                </div>
+        <div className="flex min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-purple-500/30 selection:text-purple-200">
+            {/* Animated Background */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/10 rounded-full blur-[120px] animate-pulse delay-1000" />
+                <div className="absolute top-[20%] left-[50%] -translate-x-1/2 w-[40%] h-[40%] bg-indigo-900/10 rounded-full blur-[100px]" />
             </div>
 
-            {/* Right Side - Form */}
-            <div className="flex-1 flex items-center justify-center p-6">
-                <Card className="w-full max-w-md border-0 shadow-lg dark:bg-[#111] dark:border dark:border-gray-800">
-                    <CardHeader className="space-y-1">
-                        <CardTitle className="text-2xl font-bold">Login</CardTitle>
-                        <CardDescription>Enter your email below to login to your account</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleLogin} className="space-y-4">
+            <div className="relative z-10 w-full min-h-screen flex flex-col items-center justify-center p-6">
+                <Link href="/" className="mb-8 flex items-center gap-2 group">
+                    <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 shadow-lg group-hover:shadow-purple-500/25 transition-all duration-300">
+                        <AppIcon name="Logo" className="h-6 w-6 text-white" />
+                    </div>
+                    <span className="font-bold text-2xl tracking-tight text-white">
+                        Tirta<span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">Cloud</span>
+                    </span>
+                </Link>
+
+                <GlassCard className="w-full max-w-md p-8 sm:p-10 border-white/10 backdrop-blur-2xl">
+                    <div className="space-y-6">
+                        <div className="space-y-2 text-center">
+                            <h1 className="text-3xl font-bold tracking-tight text-white">Welcome Back</h1>
+                            <p className="text-gray-400 text-sm">
+                                Enter your credentials to access your workspace.
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleLogin} className="space-y-6">
                             <div className="space-y-2">
-                                <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Email</label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="m@example.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                    className="dark:bg-[#0a0a0a]"
-                                />
+                                <label htmlFor="email" className="text-sm font-medium text-gray-300">Email</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                                        <AppIcon name="Mail" className="h-4 w-4" />
+                                    </div>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        placeholder="name@company.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:border-purple-500/50 focus:ring-purple-500/20 transition-all h-11"
+                                    />
+                                </div>
                             </div>
+
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Password</label>
-                                    <Link href="#" className="text-sm text-purple-600 hover:text-purple-500">Forgot password?</Link>
+                                    <label htmlFor="password" className="text-sm font-medium text-gray-300">Password</label>
+                                    <Link href="#" className="text-xs text-purple-400 hover:text-purple-300 transition-colors">
+                                        Forgot password?
+                                    </Link>
                                 </div>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    className="dark:bg-[#0a0a0a]"
-                                />
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                                        <AppIcon name="Lock" className="h-4 w-4" />
+                                    </div>
+                                    <Input
+                                        id="password"
+                                        type="password"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:border-purple-500/50 focus:ring-purple-500/20 transition-all h-11"
+                                    />
+                                </div>
                             </div>
+
                             <AnimatePresence>
                                 {error && (
                                     <motion.div
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        className="p-3 rounded-md bg-red-50 text-red-500 text-sm dark:bg-red-900/20 dark:text-red-400"
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-2"
                                     >
-                                        {error}
+                                        <AppIcon name="Alert" className="h-4 w-4 mt-0.5 shrink-0" />
+                                        <span>{error}</span>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
-                            <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white" disabled={loading}>
-                                {loading ? <AppIcon name="Loader" className="mr-2 h-4 w-4 animate-spin" /> : 'Login'}
-                            </Button>
+
+                            <AnimatedButton
+                                type="submit"
+                                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold h-11 rounded-lg shadow-lg shadow-purple-900/20"
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <div className="flex items-center justify-center gap-2">
+                                        <AppIcon name="Loader" className="h-4 w-4 animate-spin" />
+                                        <span>Authenticating...</span>
+                                    </div>
+                                ) : (
+                                    'Sign In'
+                                )}
+                            </AnimatedButton>
                         </form>
-                    </CardContent>
-                    <CardFooter className="justify-center">
-                        <p className="text-sm text-gray-500">
-                            Don't have an account? <Link href="/register" className="text-purple-600 hover:underline">Register</Link>
-                        </p>
-                    </CardFooter>
-                </Card>
+                    </div>
+                </GlassCard>
+
+                <p className="mt-8 text-center text-sm text-gray-500">
+                    Don&apos;t have an account?{' '}
+                    <Link href="/register" className="font-semibold text-purple-400 hover:text-purple-300 transition-colors">
+                        Create an account
+                    </Link>
+                </p>
             </div>
         </div>
     );
