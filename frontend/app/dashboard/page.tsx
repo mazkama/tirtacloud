@@ -5,7 +5,9 @@ import Link from 'next/link';
 import api from '@/lib/axios';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { GlassCard } from '@/components/shared/GlassCard';
+import { AnimatedButton } from '@/components/shared/AnimatedButton';
+import { motion } from 'framer-motion';
 import {
     Files,
     HardDrive,
@@ -14,6 +16,7 @@ import {
     FolderOpen,
     FileText,
     ArrowRight,
+    Loader2,
 } from 'lucide-react';
 
 interface StorageStats {
@@ -41,6 +44,8 @@ export default function DashboardPage() {
 
     const fetchDashboardData = async () => {
         try {
+            // Adding a small artificial delay to show off the loading state/skeleton if needed, 
+            // but for now just fetching.
             const [statsRes, filesRes] = await Promise.all([
                 api.get('/storage/stats'),
                 api.get('/vfs/files?path=/'),
@@ -66,184 +71,207 @@ export default function DashboardPage() {
         return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
     };
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: {
+            y: 0,
+            opacity: 1
+        }
+    };
+
     if (loading) {
         return (
-            <div className="flex justify-center p-12">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600"></div>
+            <div className="flex justify-center p-12 h-[50vh] items-center">
+                <Loader2 className="h-10 w-10 text-purple-600 animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="space-y-8">
+        <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-8"
+        >
             {/* Welcome Header */}
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">
-                    Welcome back, {user?.name || 'User'}
+            <motion.div variants={itemVariants}>
+                <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
+                    Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">{user?.name}</span>
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
-                    Manage your private cloud storage
+                <p className="text-gray-400">
+                    Your cloud infrastructure is running smoothly.
                 </p>
-            </div>
+            </motion.div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            Total Storage
-                        </CardTitle>
+            <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <GlassCard hoverEffect className="p-5">
+                    <div className="flex flex-row items-center justify-between pb-2">
+                        <span className="text-sm font-medium text-gray-400">Total Storage</span>
                         <HardDrive className="h-4 w-4 text-purple-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
+                    </div>
+                    <div>
+                        <div className="text-2xl font-bold text-white">
                             {stats?.total_storage_formatted || '0 B'}
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                            Across {stats?.account_count || 0} Google Drive account(s)
+                            Across <span className="text-purple-400">{stats?.account_count || 0}</span> nodes
                         </p>
-                    </CardContent>
-                </Card>
+                    </div>
+                </GlassCard>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            Used Storage
-                        </CardTitle>
+                <GlassCard hoverEffect className="p-5">
+                    <div className="flex flex-row items-center justify-between pb-2">
+                        <span className="text-sm font-medium text-gray-400">Used Storage</span>
                         <Cloud className="h-4 w-4 text-blue-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
+                    </div>
+                    <div>
+                        <div className="text-2xl font-bold text-white">
                             {stats?.used_storage_formatted || '0 B'}
                         </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-2">
-                            <div
-                                className="bg-purple-600 h-2 rounded-full transition-all"
-                                style={{ width: `${Math.min(stats?.usage_percent || 0, 100)}%` }}
+                        <div className="w-full bg-white/10 rounded-full h-1.5 mt-3 overflow-hidden">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${Math.min(stats?.usage_percent || 0, 100)}%` }}
+                                transition={{ duration: 1, ease: "easeOut" }}
+                                className="bg-gradient-to-r from-blue-500 to-purple-500 h-full rounded-full"
                             />
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                            {stats?.usage_percent || 0}% used
+                            {stats?.usage_percent || 0}% utilized
                         </p>
-                    </CardContent>
-                </Card>
+                    </div>
+                </GlassCard>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            Files Uploaded
-                        </CardTitle>
+                <GlassCard hoverEffect className="p-5">
+                    <div className="flex flex-row items-center justify-between pb-2">
+                        <span className="text-sm font-medium text-gray-400">Files Uploaded</span>
                         <Files className="h-4 w-4 text-green-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
+                    </div>
+                    <div>
+                        <div className="text-2xl font-bold text-white">
                             {stats?.file_count || 0}
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                            In {stats?.folder_count || 0} folder(s)
+                            In {stats?.folder_count || 0} directories
                         </p>
-                    </CardContent>
-                </Card>
+                    </div>
+                </GlassCard>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            Available
-                        </CardTitle>
+                <GlassCard hoverEffect className="p-5">
+                    <div className="flex flex-row items-center justify-between pb-2">
+                        <span className="text-sm font-medium text-gray-400">Available</span>
                         <Upload className="h-4 w-4 text-orange-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
+                    </div>
+                    <div>
+                        <div className="text-2xl font-bold text-white">
                             {stats?.available_storage_formatted || '0 B'}
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                            Free space remaining
+                            Capacity remaining
                         </p>
-                    </CardContent>
-                </Card>
-            </div>
+                    </div>
+                </GlassCard>
+            </motion.div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Link href="/dashboard/files">
-                    <Card className="hover:border-purple-300 dark:hover:border-purple-700 transition-colors cursor-pointer group">
-                        <CardContent className="flex items-center gap-4 pt-6">
-                            <div className="h-12 w-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                                <FolderOpen className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="font-semibold">Browse Files</h3>
-                                <p className="text-sm text-gray-500">
-                                    View and manage your uploaded files
-                                </p>
-                            </div>
-                            <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-purple-500 transition-colors" />
-                        </CardContent>
-                    </Card>
+                    <GlassCard hoverEffect className="group cursor-pointer border-l-4 border-l-purple-500 h-full flex items-center">
+                        <div className="h-14 w-14 rounded-2xl bg-purple-500/20 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
+                            <FolderOpen className="h-7 w-7 text-purple-400" />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="font-semibold text-lg text-white group-hover:text-purple-300 transition-colors">Browse Filesystem</h3>
+                            <p className="text-sm text-gray-400">
+                                View, manage, and share your uploaded content
+                            </p>
+                        </div>
+                        <ArrowRight className="h-5 w-5 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                    </GlassCard>
                 </Link>
 
                 <Link href="/dashboard/accounts">
-                    <Card className="hover:border-purple-300 dark:hover:border-purple-700 transition-colors cursor-pointer group">
-                        <CardContent className="flex items-center gap-4 pt-6">
-                            <div className="h-12 w-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                <Cloud className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="font-semibold">Google Drive Accounts</h3>
-                                <p className="text-sm text-gray-500">
-                                    Connect more accounts for extra storage
-                                </p>
-                            </div>
-                            <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-purple-500 transition-colors" />
-                        </CardContent>
-                    </Card>
+                    <GlassCard hoverEffect className="group cursor-pointer border-l-4 border-l-blue-500 h-full flex items-center">
+                        <div className="h-14 w-14 rounded-2xl bg-blue-500/20 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
+                            <Cloud className="h-7 w-7 text-blue-400" />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="font-semibold text-lg text-white group-hover:text-blue-300 transition-colors">Manage Accounts</h3>
+                            <p className="text-sm text-gray-400">
+                                Connect new Google Drive nodes to expand storage
+                            </p>
+                        </div>
+                        <ArrowRight className="h-5 w-5 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                    </GlassCard>
                 </Link>
-            </div>
+            </motion.div>
 
             {/* Recent Files */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Recent Files</CardTitle>
-                    <Link href="/dashboard/files">
-                        <Button variant="ghost" size="sm">
-                            View All <ArrowRight className="ml-1 h-4 w-4" />
-                        </Button>
-                    </Link>
-                </CardHeader>
-                <CardContent>
-                    {recentFiles.length === 0 ? (
-                        <div className="text-center py-8">
-                            <FileText className="h-10 w-10 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-                            <p className="text-sm text-gray-500">
-                                No files uploaded yet.
-                            </p>
-                            <Link href="/dashboard/files">
-                                <Button variant="outline" size="sm" className="mt-3">
-                                    <Upload className="h-4 w-4 mr-2" /> Upload Your First File
-                                </Button>
-                            </Link>
-                        </div>
-                    ) : (
-                        <div className="space-y-3">
-                            {recentFiles.map((file) => (
-                                <div
-                                    key={file.id}
-                                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                                >
-                                    <FileText className="h-4 w-4 text-gray-400 shrink-0" />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium truncate">{file.name}</p>
-                                        <p className="text-xs text-gray-500">{formatSize(file.size)}</p>
-                                    </div>
-                                    <span className="text-xs text-gray-400 shrink-0">
-                                        {file.mime_type?.split('/').pop() || 'file'}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-        </div>
+            <motion.div variants={itemVariants}>
+                <GlassCard className="p-0 overflow-hidden">
+                    <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
+                        <h3 className="font-semibold text-white flex items-center">
+                            <FileText className="mr-2 h-5 w-5 text-purple-400" /> Recent Uploads
+                        </h3>
+                        <Link href="/dashboard/files">
+                            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-white/10">
+                                View All <ArrowRight className="ml-1 h-4 w-4" />
+                            </Button>
+                        </Link>
+                    </div>
+                    <div className="p-2">
+                        {recentFiles.length === 0 ? (
+                            <div className="text-center py-12">
+                                <FileText className="h-12 w-12 mx-auto text-gray-600 mb-4 opacity-50" />
+                                <p className="text-gray-400 mb-4">
+                                    No artifacts found in the system.
+                                </p>
+                                <Link href="/dashboard/files">
+                                    <AnimatedButton size="sm" className="bg-purple-600 hover:bg-purple-700 text-white rounded-full">
+                                        <Upload className="h-4 w-4 mr-2" /> Upload Artifact
+                                    </AnimatedButton>
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="divide-y divide-white/5">
+                                {recentFiles.map((file, i) => (
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        key={file.id}
+                                        className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors rounded-lg group"
+                                    >
+                                        <div className="h-10 w-10 rounded-lg bg-gray-800 flex items-center justify-center shrink-0">
+                                            <FileText className="h-5 w-5 text-purple-400" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-gray-200 truncate group-hover:text-purple-300 transition-colors">{file.name}</p>
+                                            <p className="text-xs text-gray-500">{formatSize(file.size)} • {new Date(file.created_at || Date.now()).toLocaleDateString()}</p>
+                                        </div>
+                                        <div className="text-xs text-gray-500 border border-white/10 px-2 py-1 rounded bg-black/20">
+                                            {file.mime_type?.split('/').pop() || 'file'}
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </GlassCard>
+            </motion.div>
+        </motion.div>
     );
 }
+

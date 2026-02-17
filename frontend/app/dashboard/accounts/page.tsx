@@ -3,17 +3,17 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AnimatedButton } from '@/components/shared/AnimatedButton';
+import { GlassCard } from '@/components/shared/GlassCard';
 import {
     Cloud,
     Plus,
-    Trash2,
     RefreshCw,
     CheckCircle,
     HardDrive,
-    ExternalLink
+    Loader2
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface CloudAccount {
     id: number;
@@ -84,157 +84,167 @@ export default function AccountsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Google Drive Accounts</h1>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <h1 className="text-3xl font-bold tracking-tight text-white">Google Drive Accounts</h1>
+                    <p className="text-sm text-gray-400 mt-1">
                         Connect multiple accounts to expand your storage
                     </p>
                 </div>
-                <Button onClick={handleLinkDrive} disabled={linking}>
+                <AnimatedButton
+                    onClick={handleLinkDrive}
+                    disabled={linking}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
                     {linking ? (
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
                         <Plus className="h-4 w-4 mr-2" />
                     )}
                     {linking ? 'Redirecting...' : 'Link Google Drive'}
-                </Button>
+                </AnimatedButton>
             </div>
 
             {/* Aggregate Stats */}
             {accounts.length > 0 && (
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div className="text-center">
-                                <p className="text-sm text-gray-500">Total Storage</p>
-                                <p className="text-2xl font-bold text-purple-600">
-                                    {formatBytes(getTotalStorage())}
-                                </p>
-                            </div>
-                            <div className="text-center">
-                                <p className="text-sm text-gray-500">Used</p>
-                                <p className="text-2xl font-bold">
-                                    {formatBytes(getTotalUsed())}
-                                </p>
-                            </div>
-                            <div className="text-center">
-                                <p className="text-sm text-gray-500">Available</p>
-                                <p className="text-2xl font-bold text-green-600">
-                                    {formatBytes(getTotalStorage() - getTotalUsed())}
-                                </p>
-                            </div>
+                <GlassCard className="from-purple-900/20 to-blue-900/10">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+                        <div className="text-center p-4 bg-white/5 rounded-xl border border-white/5">
+                            <p className="text-sm text-gray-400 mb-1">Total Storage</p>
+                            <p className="text-3xl font-bold text-white">
+                                {formatBytes(getTotalStorage())}
+                            </p>
                         </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-4">
-                            <div
-                                className="bg-purple-600 h-2 rounded-full transition-all"
-                                style={{ width: `${getUsagePercent(getTotalUsed(), getTotalStorage())}%` }}
+                        <div className="text-center p-4 bg-white/5 rounded-xl border border-white/5">
+                            <p className="text-sm text-gray-400 mb-1">Used</p>
+                            <p className="text-3xl font-bold text-purple-400">
+                                {formatBytes(getTotalUsed())}
+                            </p>
+                        </div>
+                        <div className="text-center p-4 bg-white/5 rounded-xl border border-white/5">
+                            <p className="text-sm text-gray-400 mb-1">Available</p>
+                            <p className="text-3xl font-bold text-green-400">
+                                {formatBytes(getTotalStorage() - getTotalUsed())}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex justify-between text-xs text-gray-400">
+                            <span>Usage</span>
+                            <span>{getUsagePercent(getTotalUsed(), getTotalStorage())}%</span>
+                        </div>
+                        <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${getUsagePercent(getTotalUsed(), getTotalStorage())}%` }}
+                                transition={{ duration: 1, ease: "easeOut" }}
+                                className="bg-gradient-to-r from-purple-600 to-blue-600 h-full rounded-full"
                             />
                         </div>
                         <p className="text-xs text-gray-500 text-center mt-2">
-                            {getUsagePercent(getTotalUsed(), getTotalStorage())}% used across {accounts.length} account(s)
+                            {accounts.length} account{accounts.length !== 1 ? 's' : ''} connected
                         </p>
-                    </CardContent>
-                </Card>
+                    </div>
+                </GlassCard>
             )}
 
             {/* Account List */}
             {loading ? (
-                <div className="flex justify-center p-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                <div className="flex justify-center p-20">
+                    <Loader2 className="h-10 w-10 text-purple-600 animate-spin" />
                 </div>
             ) : accounts.length === 0 ? (
-                <Card className="border-dashed">
-                    <CardContent className="text-center py-12">
-                        <Cloud className="h-12 w-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-500 mb-2">
+                <GlassCard className="border-dashed border-2 bg-transparent">
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <div className="h-20 w-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
+                            <Cloud className="h-10 w-10 text-gray-500" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-white mb-2">
                             No Google Drive Accounts Linked
                         </h3>
-                        <p className="text-sm text-gray-400 mb-6 max-w-md mx-auto">
+                        <p className="text-gray-400 mb-8 max-w-md mx-auto">
                             Connect your Google Drive to start uploading and managing files.
                             You can link multiple accounts to increase your total storage.
                         </p>
-                        <Button onClick={handleLinkDrive} disabled={linking}>
+                        <AnimatedButton onClick={handleLinkDrive} disabled={linking} className="bg-white/10 hover:bg-white/20 text-white">
                             <Cloud className="h-4 w-4 mr-2" />
                             Link Your First Google Drive
-                        </Button>
-                    </CardContent>
-                </Card>
+                        </AnimatedButton>
+                    </div>
+                </GlassCard>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {accounts.map((account) => {
                         const usagePercent = getUsagePercent(account.used_storage, account.total_storage);
                         return (
-                            <Card key={account.id} className="relative overflow-hidden">
-                                <CardHeader className="pb-3">
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                                <Cloud className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                                            </div>
-                                            <div>
-                                                <CardTitle className="text-sm font-medium">
-                                                    {account.account_name || 'Google Drive'}
-                                                </CardTitle>
-                                                <CardDescription className="text-xs">
-                                                    {account.account_email}
-                                                </CardDescription>
-                                            </div>
+                            <GlassCard key={account.id} hoverEffect className="flex flex-col">
+                                <div className="flex items-start justify-between mb-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-xl bg-blue-500/20 flex items-center justify-center border border-blue-500/20">
+                                            <Cloud className="h-6 w-6 text-blue-400" />
                                         </div>
-                                        <div className="flex items-center gap-1">
-                                            <CheckCircle className="h-4 w-4 text-green-500" />
-                                            <span className="text-xs text-green-600">Connected</span>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-3">
-                                        {/* Storage bar */}
                                         <div>
-                                            <div className="flex justify-between text-xs text-gray-500 mb-1">
-                                                <span>{formatBytes(account.used_storage)} used</span>
-                                                <span>{formatBytes(account.total_storage)} total</span>
-                                            </div>
-                                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                                <div
-                                                    className={`h-2 rounded-full transition-all ${usagePercent > 90
-                                                            ? 'bg-red-500'
-                                                            : usagePercent > 70
-                                                                ? 'bg-yellow-500'
-                                                                : 'bg-purple-600'
-                                                        }`}
-                                                    style={{ width: `${usagePercent}%` }}
-                                                />
-                                            </div>
-                                            <p className="text-xs text-gray-400 mt-1 text-right">
-                                                {usagePercent}% used — {formatBytes(account.total_storage - account.used_storage)} free
+                                            <h3 className="font-semibold text-white text-lg">
+                                                {account.account_name || 'Google Drive'}
+                                            </h3>
+                                            <p className="text-sm text-gray-400">
+                                                {account.account_email}
                                             </p>
                                         </div>
-
-                                        {/* Info */}
-                                        <div className="flex items-center gap-2 text-xs text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-800">
-                                            <HardDrive className="h-3 w-3" />
-                                            <span>Provider: Google Drive</span>
-                                        </div>
                                     </div>
-                                </CardContent>
-                            </Card>
+                                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20">
+                                        <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                                        <span className="text-xs font-medium text-green-400">Connected</span>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 flex-1">
+                                    {/* Storage bar */}
+                                    <div>
+                                        <div className="flex justify-between text-xs text-gray-400 mb-2">
+                                            <span>{formatBytes(account.used_storage)} used</span>
+                                            <span>{formatBytes(account.total_storage)} total</span>
+                                        </div>
+                                        <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${usagePercent}%` }}
+                                                transition={{ duration: 1 }}
+                                                className={`h-full rounded-full ${usagePercent > 90
+                                                    ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'
+                                                    : usagePercent > 70
+                                                        ? 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]'
+                                                        : 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]'
+                                                    }`}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-2 text-right">
+                                            {usagePercent}% used — {formatBytes(account.total_storage - account.used_storage)} free
+                                        </p>
+                                    </div>
+
+                                    {/* Info */}
+                                    <div className="flex items-center gap-2 text-xs text-gray-500 pt-4 border-t border-white/5 mt-auto">
+                                        <HardDrive className="h-3 w-3" />
+                                        <span>Provider: Google Drive</span>
+                                    </div>
+                                </div>
+                            </GlassCard>
                         );
                     })}
                 </div>
             )}
 
             {/* Info Note */}
-            <Card className="bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800">
-                <CardContent className="pt-6">
-                    <p className="text-sm text-blue-700 dark:text-blue-300">
-                        <strong>💡 How it works:</strong> When you upload a file, TirtaCloud automatically
-                        selects the Google Drive account with the most free space. Your files are stored
-                        securely and only accessible through TirtaCloud — they won't appear in your
-                        regular Google Drive folders.
-                    </p>
-                </CardContent>
-            </Card>
+            <GlassCard className="bg-blue-500/5 from-blue-500/5 to-transparent border-blue-500/20">
+                <p className="text-sm text-blue-300">
+                    <strong className="text-blue-200">💡 How it works:</strong> When you upload a file, TirtaCloud automatically
+                    selects the Google Drive account with the most free space. Your files are stored
+                    securely and only accessible through TirtaCloud — they won't appear in your
+                    regular Google Drive folders.
+                </p>
+            </GlassCard>
         </div>
     );
 }

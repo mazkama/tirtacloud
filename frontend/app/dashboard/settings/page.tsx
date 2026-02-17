@@ -1,8 +1,8 @@
 "use client";
 
 import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { GlassCard } from '@/components/shared/GlassCard';
+import { AnimatedButton } from '@/components/shared/AnimatedButton';
 import { User, Mail, Shield, LogOut } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -11,82 +11,78 @@ export default function SettingsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                <h1 className="text-3xl font-bold tracking-tight text-white">Settings</h1>
+                <p className="text-sm text-gray-400 mt-1">
                     Account information and preferences
                 </p>
             </div>
 
             {/* Profile Info */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Profile</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                            <User className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <div>
-                            <p className="font-semibold">{user?.name || '-'}</p>
-                            <p className="text-sm text-gray-500">{user?.email || '-'}</p>
-                        </div>
+            <GlassCard>
+                <h2 className="text-lg font-semibold text-white mb-4">Profile</h2>
+                <div className="flex items-center gap-4">
+                    <div className="h-16 w-16 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
+                        <User className="h-8 w-8 text-purple-400" />
                     </div>
-                </CardContent>
-            </Card>
+                    <div>
+                        <p className="font-semibold text-xl text-white">{user?.name || 'User'}</p>
+                        <p className="text-sm text-gray-400">{user?.email || 'No email'}</p>
+                    </div>
+                </div>
+            </GlassCard>
 
             {/* About */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">About TirtaCloud</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                    <div className="flex items-start gap-3">
-                        <Shield className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
+            <GlassCard>
+                <h2 className="text-lg font-semibold text-white mb-4">About TirtaCloud</h2>
+                <div className="space-y-6">
+                    <div className="flex items-start gap-4">
+                        <div className="mt-1 p-2 bg-green-500/10 rounded-lg border border-green-500/20">
+                            <Shield className="h-5 w-5 text-green-400" />
+                        </div>
                         <div>
-                            <p className="font-medium text-sm">Private Virtual Filesystem</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="font-medium text-white">Private Virtual Filesystem</p>
+                            <p className="text-sm text-gray-400 mt-1 leading-relaxed">
                                 Files uploaded through TirtaCloud are stored in an isolated
                                 &quot;TirtaCloud&quot; folder in your Google Drive. They never mix
                                 with your personal files and are only accessible through this app.
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                        <Mail className="h-5 w-5 text-blue-500 mt-0.5 shrink-0" />
+                    <div className="flex items-start gap-4">
+                        <div className="mt-1 p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                            <Mail className="h-5 w-5 text-blue-400" />
+                        </div>
                         <div>
-                            <p className="font-medium text-sm">Multi-Account Support</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="font-medium text-white">Multi-Account Support</p>
+                            <p className="text-sm text-gray-400 mt-1 leading-relaxed">
                                 Connect multiple Google Drive accounts to expand your storage.
                                 Uploads are automatically balanced across accounts.
                             </p>
                         </div>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </GlassCard>
 
             {/* Logout */}
-            <Card className="border-red-200 dark:border-red-800/50">
-                <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="font-medium text-sm">Sign out</p>
-                            <p className="text-xs text-gray-500">
-                                Log out from your TirtaCloud account
-                            </p>
-                        </div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={logout}
-                            className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20"
-                        >
-                            <LogOut className="h-4 w-4 mr-1" />
-                            Logout
-                        </Button>
+            <GlassCard className="border-red-500/30 bg-red-950/10 hover:bg-red-950/20 transition-colors">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="font-medium text-red-200">Sign out</p>
+                        <p className="text-xs text-red-300/70 mt-1">
+                            Log out from your TirtaCloud session
+                        </p>
                     </div>
-                </CardContent>
-            </Card>
+                    <AnimatedButton
+                        variant="outline"
+                        size="sm"
+                        onClick={logout}
+                        className="text-red-400 border-red-500/30 hover:bg-red-500/20 hover:text-red-300"
+                    >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Logout
+                    </AnimatedButton>
+                </div>
+            </GlassCard>
         </div>
     );
 }
