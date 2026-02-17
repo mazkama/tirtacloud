@@ -624,11 +624,6 @@ export default function FilesPage() {
                 file={previewFile}
                 open={!!previewFile}
                 onClose={() => setPreviewFile(null)}
-                // Fix: Ensure onDownload is passed correctly if FilePreview requires it, 
-                // or just rely on FilePreview's internal logic if it has any, 
-                // but checking FilePreview usage before it seemed it might need props.
-                // Assuming existing FilePreview is compatible or I need to check it.
-                // Based on previous file content, it accepts onDownload.
                 onDownload={async () => { if (previewFile) await handleDownload(previewFile); }}
             />
 
