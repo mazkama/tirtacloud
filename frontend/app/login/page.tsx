@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import api from '@/lib/axios';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +15,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const { login } = useAuth();
     const router = useRouter();
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -22,12 +23,7 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            await api.get('/sanctum/csrf-cookie', {
-                baseURL: process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '')
-            });
-            const response = await api.post('/login', { email, password });
-            localStorage.setItem('token', response.data.access_token);
-            router.push('/dashboard');
+            await login(email, password);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
         } finally {

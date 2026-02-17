@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import api from '@/lib/axios';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ export default function RegisterPage() {
     const [passwordConfirmation, setPasswordConfirmation] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const { register } = useAuth();
     const router = useRouter();
 
     const handleRegister = async (e: React.FormEvent) => {
@@ -24,17 +25,7 @@ export default function RegisterPage() {
         setError('');
         setLoading(true);
         try {
-            await api.get('/sanctum/csrf-cookie', {
-                baseURL: process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '')
-            });
-            const response = await api.post('/register', {
-                name,
-                email,
-                password,
-                password_confirmation: passwordConfirmation
-            });
-            localStorage.setItem('token', response.data.access_token);
-            router.push('/dashboard');
+            await register(name, email, password);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Registration failed. Please check your inputs.');
         } finally {
