@@ -1,8 +1,8 @@
 "use client";
 
 import Link from 'next/link';
-import { ArrowRight, Cloud, HardDrive, Lock, Zap, Shield, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { AppIcon } from '@/components/shared/AppIcon';
 import { AnimatedButton } from '@/components/shared/AnimatedButton';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { TypingText } from '@/components/landing/TypingText';
@@ -21,7 +21,7 @@ export default function Home() {
       <header className="px-6 lg:px-8 h-20 flex items-center justify-between border-b border-white/5 backdrop-blur-md sticky top-0 z-50 bg-background/50">
         <Link className="flex items-center justify-center font-bold text-2xl tracking-tighter" href="#">
           <div className="relative mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-600 to-blue-600">
-            <Cloud className="h-5 w-5 text-white" />
+            <AppIcon name="Logo" className="h-5 w-5 text-white" />
           </div>
           <span>Tirta<span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Cloud</span></span>
         </Link>
@@ -66,7 +66,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row justify-center gap-6 pt-8">
               <Link href="/register">
                 <AnimatedButton size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold px-8 h-14 rounded-full shadow-[0_0_30px_-5px_rgba(168,85,247,0.4)] hover:shadow-[0_0_50px_-10px_rgba(168,85,247,0.6)] text-lg">
-                  Start for Free <ArrowRight className="ml-2 h-5 w-5" />
+                  Start for Free <AppIcon name="ArrowRight" className="ml-2 h-5 w-5" />
                 </AnimatedButton>
               </Link>
               <Link href="/login">
@@ -91,7 +91,7 @@ export default function Home() {
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
               <GlassCard hoverEffect>
                 <div className="h-12 w-12 rounded-xl bg-purple-500/20 flex items-center justify-center mb-6 text-purple-400">
-                  <Cloud className="h-6 w-6" />
+                  <AppIcon name="CloudSync" size={24} />
                 </div>
                 <h3 className="text-xl font-bold mb-3">Multi-Cloud Sync</h3>
                 <p className="text-gray-400 leading-relaxed">
@@ -101,7 +101,7 @@ export default function Home() {
 
               <GlassCard hoverEffect>
                 <div className="h-12 w-12 rounded-xl bg-pink-500/20 flex items-center justify-center mb-6 text-pink-400">
-                  <Shield className="h-6 w-6" />
+                  <AppIcon name="Security" size={24} />
                 </div>
                 <h3 className="text-xl font-bold mb-3">Zero Trust Security</h3>
                 <p className="text-gray-400 leading-relaxed">
@@ -111,7 +111,7 @@ export default function Home() {
 
               <GlassCard hoverEffect>
                 <div className="h-12 w-12 rounded-xl bg-blue-500/20 flex items-center justify-center mb-6 text-blue-400">
-                  <Zap className="h-6 w-6" />
+                  <AppIcon name="Speed" size={24} />
                 </div>
                 <h3 className="text-xl font-bold mb-3">Instant Access</h3>
                 <p className="text-gray-400 leading-relaxed">
@@ -121,7 +121,7 @@ export default function Home() {
 
               <GlassCard hoverEffect>
                 <div className="h-12 w-12 rounded-xl bg-orange-500/20 flex items-center justify-center mb-6 text-orange-400">
-                  <Globe className="h-6 w-6" />
+                  <AppIcon name="Global" size={24} />
                 </div>
                 <h3 className="text-xl font-bold mb-3">Global CDN</h3>
                 <p className="text-gray-400 leading-relaxed">
@@ -131,7 +131,7 @@ export default function Home() {
 
               <GlassCard hoverEffect>
                 <div className="h-12 w-12 rounded-xl bg-green-500/20 flex items-center justify-center mb-6 text-green-400">
-                  <Lock className="h-6 w-6" />
+                  <AppIcon name="Lock" size={24} />
                 </div>
                 <h3 className="text-xl font-bold mb-3">Secure Sharing</h3>
                 <p className="text-gray-400 leading-relaxed">
@@ -141,7 +141,7 @@ export default function Home() {
 
               <GlassCard hoverEffect className="flex flex-col items-center justify-center text-center border-dashed border-2 bg-transparent">
                 <div className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                  <ArrowRight className="h-5 w-5 text-gray-400" />
+                  <AppIcon name="ArrowRight" size={20} className="text-gray-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-300">And much more...</h3>
               </GlassCard>
@@ -152,7 +152,7 @@ export default function Home() {
 
       <footer className="py-12 w-full shrink-0 border-t border-white/5 bg-black/50 backdrop-blur-xl relative z-10">
         <div className="container px-4 md:px-6 mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-gray-600">© 2024 TirtaCloud Inc. All rights reserved.</p>
+          <p className="text-sm text-gray-600">© 2026 TirtaCloud Inc. All rights reserved.</p>
           <nav className="flex gap-8">
             <Link className="text-sm hover:text-white transition-colors text-gray-600" href="#">Terms</Link>
             <Link className="text-sm hover:text-white transition-colors text-gray-600" href="#">Privacy</Link>

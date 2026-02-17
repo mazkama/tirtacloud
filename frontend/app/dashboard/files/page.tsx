@@ -17,24 +17,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import {
-    FileText,
-    Folder,
-    Upload,
-    FolderPlus,
-    ChevronRight,
-    Home,
-    ArrowLeft,
-    Share2,
-    Copy,
-    Check,
-    Link as LinkIcon,
-    Download,
-    LayoutGrid,
-    List as ListIcon,
-    Loader2,
-    CloudUpload
-} from 'lucide-react';
+import { AppIcon } from '@/components/shared/AppIcon';
 import { FilePreview } from '@/components/dashboard/FilePreview';
 
 interface VirtualFile {
@@ -334,7 +317,7 @@ export default function FilesPage() {
                         className="absolute inset-0 z-50 bg-purple-600/20 backdrop-blur-sm border-2 border-dashed border-purple-500 rounded-xl flex items-center justify-center pointer-events-none"
                     >
                         <div className="bg-[#0a0a0a] p-8 rounded-full shadow-2xl border border-purple-500/30 text-center">
-                            <CloudUpload className="h-16 w-16 text-purple-500 mx-auto mb-4 animate-bounce" />
+                            <AppIcon name="CloudUpload" className="h-16 w-16 text-purple-500 mx-auto mb-4 animate-bounce" />
                             <h3 className="text-2xl font-bold text-white mb-2">Drop files to upload</h3>
                             <p className="text-gray-400">Release to add files to {currentPath === '/' ? 'home' : 'current folder'}</p>
                         </div>
@@ -354,20 +337,20 @@ export default function FilesPage() {
                         <button
                             onClick={() => setViewMode('grid')}
                             className={cn(
-                                "p-2 rounded-md transition-all",
-                                viewMode === 'grid' ? "bg-purple-600 text-white shadow-lg" : "text-gray-400 hover:text-white"
+                                "p-2 rounded-lg transition-colors",
+                                viewMode === 'grid' ? "bg-white/10 text-white" : "text-gray-400 hover:text-white"
                             )}
                         >
-                            <LayoutGrid className="h-4 w-4" />
+                            <AppIcon name="Grid" className="h-4 w-4" />
                         </button>
                         <button
                             onClick={() => setViewMode('list')}
                             className={cn(
-                                "p-2 rounded-md transition-all",
-                                viewMode === 'list' ? "bg-purple-600 text-white shadow-lg" : "text-gray-400 hover:text-white"
+                                "p-2 rounded-lg transition-colors",
+                                viewMode === 'list' ? "bg-white/10 text-white" : "text-gray-400 hover:text-white"
                             )}
                         >
-                            <ListIcon className="h-4 w-4" />
+                            <AppIcon name="List" className="h-4 w-4" />
                         </button>
                     </div>
 
@@ -376,14 +359,14 @@ export default function FilesPage() {
                         className="border-white/10 bg-white/5 hover:bg-white/10 text-white"
                         onClick={() => setCreateFolderOpen(true)}
                     >
-                        <FolderPlus className="h-4 w-4 mr-2" />
+                        <AppIcon name="NewFolder" className="h-4 w-4 mr-2" />
                         New Folder
                     </AnimatedButton>
                     <AnimatedButton
                         className="bg-purple-600 hover:bg-purple-700 text-white"
                         onClick={() => setUploadDialogOpen(true)}
                     >
-                        <Upload className="h-4 w-4 mr-2" />
+                        <AppIcon name="Upload" className="h-4 w-4 mr-2" />
                         Upload
                     </AnimatedButton>
                 </div>
@@ -397,13 +380,13 @@ export default function FilesPage() {
                         className="p-1.5 hover:bg-white/10 rounded-lg mr-2 text-gray-400 hover:text-white transition-colors"
                         title="Go back"
                     >
-                        <ArrowLeft className="h-4 w-4" />
+                        <AppIcon name="ArrowRight" className="h-4 w-4 rotate-180" />
                     </button>
                 )}
                 <div className="flex items-center">
                     {breadcrumbs.map((crumb, i) => (
                         <div key={crumb.path} className="flex items-center gap-1 shrink-0">
-                            {i > 0 && <ChevronRight className="h-4 w-4 text-gray-600 mx-1" />}
+                            {i > 0 && <AppIcon name="ChevronRight" className="h-4 w-4 text-gray-600 mx-1" />}
                             <button
                                 onClick={() => navigateToBreadcrumb(crumb)}
                                 className={cn(
@@ -413,7 +396,7 @@ export default function FilesPage() {
                                         : "text-gray-400 hover:text-white hover:bg-white/5"
                                 )}
                             >
-                                {i === 0 && <Home className="h-4 w-4" />}
+                                {i === 0 && <AppIcon name="Home" className="h-4 w-4" />}
                                 <span>{crumb.name}</span>
                             </button>
                         </div>
@@ -425,7 +408,7 @@ export default function FilesPage() {
             {loading ? (
                 <div className="flex justify-center p-20 h-[50vh] items-center">
                     <div className="flex flex-col items-center">
-                        <Loader2 className="h-10 w-10 text-purple-600 animate-spin mb-4" />
+                        <AppIcon name="Loader" className="h-10 w-10 text-purple-600 animate-spin mb-4" />
                         <p className="text-gray-500 text-sm">Loading contents...</p>
                     </div>
                 </div>
@@ -433,7 +416,7 @@ export default function FilesPage() {
                 <GlassCard className="border-dashed border-2 bg-transparent">
                     <div className="flex flex-col items-center justify-center py-16 text-center">
                         <div className="h-20 w-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
-                            <Folder className="h-10 w-10 text-gray-500" />
+                            <AppIcon name="Files" className="h-10 w-10 text-gray-500" />
                         </div>
                         <h3 className="text-xl font-semibold text-white mb-2">
                             {currentPath === '/' ? 'Your cloud is empty' : 'Empty directory'}
@@ -445,10 +428,10 @@ export default function FilesPage() {
                         </p>
                         <div className="flex gap-4">
                             <AnimatedButton variant="outline" onClick={() => setCreateFolderOpen(true)} className="border-white/10">
-                                <FolderPlus className="h-4 w-4 mr-2" /> New Folder
+                                <AppIcon name="NewFolder" className="h-4 w-4 mr-2" /> New Folder
                             </AnimatedButton>
                             <AnimatedButton onClick={() => setUploadDialogOpen(true)} className="bg-purple-600">
-                                <Upload className="h-4 w-4 mr-2" /> Upload Files
+                                <AppIcon name="Upload" className="h-4 w-4 mr-2" /> Upload Files
                             </AnimatedButton>
                         </div>
                     </div>
@@ -558,7 +541,7 @@ export default function FilesPage() {
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             />
                             <div className="flex flex-col items-center pointer-events-none">
-                                <Upload className="h-10 w-10 text-purple-500 mb-3" />
+                                <AppIcon name="Upload" className="h-10 w-10 text-purple-500 mb-3" />
                                 <p className="font-medium">Click to browse or drag files here</p>
                                 <p className="text-xs text-gray-500 mt-1">Uploading to {currentPath}</p>
                             </div>
@@ -592,7 +575,7 @@ export default function FilesPage() {
 
                         {uploadSuccess && (
                             <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-green-400 text-sm flex items-center">
-                                <Check className="h-4 w-4 mr-2" /> {uploadSuccess}
+                                <AppIcon name="Check" className="h-4 w-4 mr-2" /> {uploadSuccess}
                             </div>
                         )}
 
@@ -632,7 +615,7 @@ export default function FilesPage() {
                 <DialogContent className="sm:max-w-md bg-[#0a0a0a] border-white/10 text-white">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
-                            <Share2 className="h-5 w-5 text-purple-500" />
+                            <AppIcon name="Share" className="h-5 w-5 text-purple-500" />
                             Share Link
                         </DialogTitle>
                     </DialogHeader>
@@ -652,7 +635,7 @@ export default function FilesPage() {
                                     onClick={() => copyToClipboard(shareUrl)}
                                     className="shrink-0 border-white/10 bg-white/5 hover:bg-white/10 hover:text-white"
                                 >
-                                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                    {copied ? <AppIcon name="Check" className="h-4 w-4 text-green-500" /> : <AppIcon name="Copy" className="h-4 w-4" />}
                                 </Button>
                             </div>
                         </div>
@@ -686,7 +669,7 @@ export default function FilesPage() {
                                             className="h-8 w-8 p-0 hover:bg-white/10 text-gray-400 hover:text-white"
                                             title="Copy preview URL"
                                         >
-                                            <Copy className="h-3 w-3" />
+                                            <AppIcon name="Copy" className="h-3 w-3" />
                                         </Button>
                                     </div>
                                 </div>
@@ -708,7 +691,7 @@ export default function FilesPage() {
                                             className="h-8 w-8 p-0 hover:bg-white/10 text-gray-400 hover:text-white"
                                             title="Copy download URL"
                                         >
-                                            <Copy className="h-3 w-3" />
+                                            <AppIcon name="Copy" className="h-3 w-3" />
                                         </Button>
                                     </div>
                                 </div>

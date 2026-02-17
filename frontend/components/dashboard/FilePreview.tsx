@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download, X } from 'lucide-react';
+import { AppIcon } from '@/components/shared/AppIcon';
 
 interface VirtualFile {
     id: number;
@@ -81,12 +81,12 @@ export function FilePreview({ file, open, onClose, onDownload }: FilePreviewProp
         // Unsupported
         return (
             <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                <X className="h-16 w-16 mb-4" />
+                <AppIcon name="Close" className="h-16 w-16 mb-4" />
                 <p className="text-lg font-medium">Preview not available</p>
                 <p className="text-sm mt-2">This file type cannot be previewed</p>
                 {onDownload && (
                     <Button onClick={onDownload} className="mt-4">
-                        <Download className="h-4 w-4 mr-2" />
+                        <AppIcon name="Download" className="h-4 w-4 mr-2" />
                         Download File
                     </Button>
                 )}
@@ -103,7 +103,7 @@ export function FilePreview({ file, open, onClose, onDownload }: FilePreviewProp
                         <div className="flex gap-2">
                             {onDownload && (
                                 <Button variant="outline" size="sm" onClick={onDownload}>
-                                    <Download className="h-4 w-4 mr-2" />
+                                    <AppIcon name="Download" className="h-4 w-4 mr-2" />
                                     Download
                                 </Button>
                             )}

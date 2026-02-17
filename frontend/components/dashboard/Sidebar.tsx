@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Files, HardDrive, Cloud, Settings, LogOut, X, ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { AppIcon, IconName } from '@/components/shared/AppIcon';
 import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
@@ -19,12 +19,12 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     const { user, logout } = useAuth();
     const [isCollapsed, setIsCollapsed] = useState(false);
 
-    const navItems = [
-        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-        { name: 'Files', href: '/dashboard/files', icon: Files },
-        { name: 'Storage', href: '/dashboard/storage', icon: HardDrive },
-        { name: 'Accounts', href: '/dashboard/accounts', icon: Cloud },
-        { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+    const navItems: { name: string; href: string; icon: IconName }[] = [
+        { name: 'Dashboard', href: '/dashboard', icon: 'Dashboard' },
+        { name: 'Files', href: '/dashboard/files', icon: 'Files' },
+        { name: 'Storage', href: '/dashboard/storage', icon: 'Storage' },
+        { name: 'Accounts', href: '/dashboard/accounts', icon: 'Accounts' },
+        { name: 'Settings', href: '/dashboard/settings', icon: 'Settings' },
     ];
 
     const sidebarWidth = isCollapsed ? "w-[70px]" : "w-64";
@@ -53,26 +53,26 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                     {!isCollapsed && (
                         <div className="font-bold text-xl tracking-tight flex items-center gap-2">
                             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                                <Cloud className="h-5 w-5 text-white" />
+                                <AppIcon name="Logo" className="h-5 w-5 text-white" />
                             </div>
                             <span>Tirta<span className="text-purple-400">Cloud</span></span>
                         </div>
                     )}
                     {isCollapsed && (
                         <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                            <Cloud className="h-5 w-5 text-white" />
+                            <AppIcon name="Logo" className="h-5 w-5 text-white" />
                         </div>
                     )}
 
                     <button onClick={() => setIsOpen(false)} className="md:hidden text-gray-400">
-                        <X className="h-5 w-5" />
+                        <AppIcon name="Close" className="h-5 w-5" />
                     </button>
 
                     <button
                         onClick={() => setIsCollapsed(!isCollapsed)}
                         className="hidden md:flex h-6 w-6 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors absolute -right-3 top-20 border border-white/10 z-50"
                     >
-                        {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+                        <AppIcon name={isCollapsed ? "ChevronRight" : "ChevronLeft"} className="h-3 w-3" />
                     </button>
                 </div>
 
@@ -90,7 +90,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                                             : "text-gray-400 hover:bg-white/5 hover:text-gray-200",
                                         isCollapsed && "justify-center px-2"
                                     )}>
-                                        <item.icon className={cn("h-5 w-5 shrink-0", isActive && "text-purple-400")} />
+                                        <AppIcon name={item.icon} className={cn("h-5 w-5", isActive && "text-purple-400")} />
                                         {!isCollapsed && <span>{item.name}</span>}
 
                                         {/* Active Indicator Strip */}
@@ -116,7 +116,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                     <div className="space-y-4 pt-6 border-t border-white/5">
                         <div className={cn("flex items-center gap-3 px-2 py-2 rounded-xl bg-white/5 border border-white/5", isCollapsed && "justify-center bg-transparent border-0")}>
                             <div className="h-9 w-9 rounded-full bg-purple-900/50 flex items-center justify-center shrink-0 border border-purple-500/20">
-                                <User className="h-4 w-4 text-purple-300" />
+                                <AppIcon name="User" className="h-4 w-4 text-purple-300" />
                             </div>
                             {!isCollapsed && (
                                 <div className="flex-1 min-w-0">
@@ -134,7 +134,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                             )}
                             onClick={() => logout()}
                         >
-                            <LogOut className={cn("h-5 w-5", !isCollapsed && "mr-2")} />
+                            <AppIcon name="Logout" className={cn("h-5 w-5", !isCollapsed && "mr-2")} />
                             {!isCollapsed && "Logout"}
                         </Button>
                     </div>

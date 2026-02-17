@@ -8,16 +8,7 @@ import { Button } from '@/components/ui/button';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { AnimatedButton } from '@/components/shared/AnimatedButton';
 import { motion } from 'framer-motion';
-import {
-    Files,
-    HardDrive,
-    Cloud,
-    Upload,
-    FolderOpen,
-    FileText,
-    ArrowRight,
-    Loader2,
-} from 'lucide-react';
+import { AppIcon } from '@/components/shared/AppIcon';
 
 interface StorageStats {
     total_storage: number;
@@ -92,7 +83,7 @@ export default function DashboardPage() {
     if (loading) {
         return (
             <div className="flex justify-center p-12 h-[50vh] items-center">
-                <Loader2 className="h-10 w-10 text-purple-600 animate-spin" />
+                <AppIcon name="Loader" className="h-10 w-10 text-purple-600 animate-spin" />
             </div>
         );
     }
@@ -119,7 +110,7 @@ export default function DashboardPage() {
                 <GlassCard hoverEffect className="p-5">
                     <div className="flex flex-row items-center justify-between pb-2">
                         <span className="text-sm font-medium text-gray-400">Total Storage</span>
-                        <HardDrive className="h-4 w-4 text-purple-500" />
+                        <AppIcon name="Storage" className="h-4 w-4 text-purple-500" />
                     </div>
                     <div>
                         <div className="text-2xl font-bold text-white">
@@ -134,7 +125,7 @@ export default function DashboardPage() {
                 <GlassCard hoverEffect className="p-5">
                     <div className="flex flex-row items-center justify-between pb-2">
                         <span className="text-sm font-medium text-gray-400">Used Storage</span>
-                        <Cloud className="h-4 w-4 text-blue-500" />
+                        <AppIcon name="CloudSync" className="h-4 w-4 text-blue-500" />
                     </div>
                     <div>
                         <div className="text-2xl font-bold text-white">
@@ -157,7 +148,7 @@ export default function DashboardPage() {
                 <GlassCard hoverEffect className="p-5">
                     <div className="flex flex-row items-center justify-between pb-2">
                         <span className="text-sm font-medium text-gray-400">Files Uploaded</span>
-                        <Files className="h-4 w-4 text-green-500" />
+                        <AppIcon name="Files" className="h-4 w-4 text-green-500" />
                     </div>
                     <div>
                         <div className="text-2xl font-bold text-white">
@@ -172,7 +163,7 @@ export default function DashboardPage() {
                 <GlassCard hoverEffect className="p-5">
                     <div className="flex flex-row items-center justify-between pb-2">
                         <span className="text-sm font-medium text-gray-400">Available</span>
-                        <Upload className="h-4 w-4 text-orange-500" />
+                        <AppIcon name="Upload" className="h-4 w-4 text-orange-500" />
                     </div>
                     <div>
                         <div className="text-2xl font-bold text-white">
@@ -190,7 +181,7 @@ export default function DashboardPage() {
                 <Link href="/dashboard/files">
                     <GlassCard hoverEffect className="group cursor-pointer border-l-4 border-l-purple-500 h-full flex items-center">
                         <div className="h-14 w-14 rounded-2xl bg-purple-500/20 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
-                            <FolderOpen className="h-7 w-7 text-purple-400" />
+                            <AppIcon name="Files" className="h-7 w-7 text-purple-400" />
                         </div>
                         <div className="flex-1">
                             <h3 className="font-semibold text-lg text-white group-hover:text-purple-300 transition-colors">Browse Filesystem</h3>
@@ -198,14 +189,14 @@ export default function DashboardPage() {
                                 View, manage, and share your uploaded content
                             </p>
                         </div>
-                        <ArrowRight className="h-5 w-5 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                        <AppIcon name="ArrowRight" className="h-5 w-5 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
                     </GlassCard>
                 </Link>
 
                 <Link href="/dashboard/accounts">
                     <GlassCard hoverEffect className="group cursor-pointer border-l-4 border-l-blue-500 h-full flex items-center">
                         <div className="h-14 w-14 rounded-2xl bg-blue-500/20 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
-                            <Cloud className="h-7 w-7 text-blue-400" />
+                            <AppIcon name="CloudSync" className="h-7 w-7 text-blue-400" />
                         </div>
                         <div className="flex-1">
                             <h3 className="font-semibold text-lg text-white group-hover:text-blue-300 transition-colors">Manage Accounts</h3>
@@ -213,7 +204,7 @@ export default function DashboardPage() {
                                 Connect new Google Drive nodes to expand storage
                             </p>
                         </div>
-                        <ArrowRight className="h-5 w-5 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                        <AppIcon name="ArrowRight" className="h-5 w-5 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
                     </GlassCard>
                 </Link>
             </motion.div>
@@ -223,24 +214,24 @@ export default function DashboardPage() {
                 <GlassCard className="p-0 overflow-hidden">
                     <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
                         <h3 className="font-semibold text-white flex items-center">
-                            <FileText className="mr-2 h-5 w-5 text-purple-400" /> Recent Uploads
+                            <AppIcon name="File" className="mr-2 h-5 w-5 text-purple-400" /> Recent Uploads
                         </h3>
                         <Link href="/dashboard/files">
                             <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-white/10">
-                                View All <ArrowRight className="ml-1 h-4 w-4" />
+                                View All <AppIcon name="ArrowRight" className="ml-1 h-4 w-4" />
                             </Button>
                         </Link>
                     </div>
                     <div className="p-2">
                         {recentFiles.length === 0 ? (
                             <div className="text-center py-12">
-                                <FileText className="h-12 w-12 mx-auto text-gray-600 mb-4 opacity-50" />
+                                <AppIcon name="File" className="h-12 w-12 mx-auto text-gray-600 mb-4 opacity-50" />
                                 <p className="text-gray-400 mb-4">
                                     No artifacts found in the system.
                                 </p>
                                 <Link href="/dashboard/files">
                                     <AnimatedButton size="sm" className="bg-purple-600 hover:bg-purple-700 text-white rounded-full">
-                                        <Upload className="h-4 w-4 mr-2" /> Upload Artifact
+                                        <AppIcon name="Upload" className="h-4 w-4 mr-2" /> Upload Artifact
                                     </AnimatedButton>
                                 </Link>
                             </div>
@@ -255,7 +246,7 @@ export default function DashboardPage() {
                                         className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors rounded-lg group"
                                     >
                                         <div className="h-10 w-10 rounded-lg bg-gray-800 flex items-center justify-center shrink-0">
-                                            <FileText className="h-5 w-5 text-purple-400" />
+                                            <AppIcon name="File" className="h-5 w-5 text-purple-400" />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium text-gray-200 truncate group-hover:text-purple-300 transition-colors">{file.name}</p>

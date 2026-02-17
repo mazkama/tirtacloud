@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { AppIcon } from '@/components/shared/AppIcon';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function RegisterPage() {
@@ -83,7 +83,7 @@ export default function RegisterPage() {
                                 )}
                             </AnimatePresence>
                             <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white" disabled={loading}>
-                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Register'}
+                                {loading ? <AppIcon name="Loader" className="mr-2 h-4 w-4 animate-spin" /> : 'Register'}
                             </Button>
                         </form>
                     </CardContent>

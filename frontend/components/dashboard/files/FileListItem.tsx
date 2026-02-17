@@ -3,18 +3,6 @@
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import {
-    FileText,
-    Folder,
-    MoreVertical,
-    Download,
-    Share2,
-    Trash2,
-    Eye,
-    Image as ImageIcon,
-    Film,
-    Music
-} from "lucide-react";
-import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -22,6 +10,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { AppIcon } from "@/components/shared/AppIcon";
 
 interface VirtualFile {
     id: number;
@@ -54,13 +43,13 @@ export function FileListItem({
 }: FileListItemProps) {
 
     const getFileIcon = (file: VirtualFile) => {
-        if (file.is_folder) return <Folder className="h-5 w-5 text-yellow-500" />;
+        if (file.is_folder) return <AppIcon name="Folder" className="h-5 w-5 text-yellow-500" />;
         const mime = file.mime_type || '';
-        if (mime.includes('image')) return <ImageIcon className="h-5 w-5 text-purple-500" />;
-        if (mime.includes('video')) return <Film className="h-5 w-5 text-red-500" />;
-        if (mime.includes('audio')) return <Music className="h-5 w-5 text-blue-500" />;
-        if (mime.includes('pdf')) return <FileText className="h-5 w-5 text-red-600" />;
-        return <FileText className="h-5 w-5 text-gray-400" />;
+        if (mime.includes('image')) return <AppIcon name="Image" className="h-5 w-5 text-purple-500" />;
+        if (mime.includes('video')) return <AppIcon name="Video" className="h-5 w-5 text-red-500" />;
+        if (mime.includes('audio')) return <AppIcon name="Audio" className="h-5 w-5 text-blue-500" />;
+        if (mime.includes('pdf')) return <AppIcon name="File" className="h-5 w-5 text-red-600" />;
+        return <AppIcon name="File" className="h-5 w-5 text-gray-400" />;
     };
 
     const formatSize = (bytes: number) => {
@@ -102,20 +91,20 @@ export function FileListItem({
                             className="p-1.5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <MoreVertical className="h-4 w-4" />
+                            <AppIcon name="More" className="h-4 w-4" />
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-40 bg-[#1a1a1a] border-white/10 text-white">
                         {!file.is_folder && (
                             <>
                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onPreview(file) }}>
-                                    <Eye className="mr-2 h-4 w-4" /> Preview
+                                    <AppIcon name="Preview" className="mr-2 h-4 w-4" /> Preview
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDownload(file) }}>
-                                    <Download className="mr-2 h-4 w-4" /> Download
+                                    <AppIcon name="Download" className="mr-2 h-4 w-4" /> Download
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onShare(file) }}>
-                                    <Share2 className="mr-2 h-4 w-4" /> Share
+                                    <AppIcon name="Share" className="mr-2 h-4 w-4" /> Share
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator className="bg-white/10" />
                             </>
@@ -125,11 +114,11 @@ export function FileListItem({
                                 e.stopPropagation();
                                 onNavigate(file);
                             }}>
-                                <Folder className="mr-2 h-4 w-4" /> Open
+                                <AppIcon name="Folder" className="mr-2 h-4 w-4" /> Open
                             </DropdownMenuItem>
                         )}
                         <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(file) }} className="text-red-400 focus:text-red-400">
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            <AppIcon name="Delete" className="mr-2 h-4 w-4" /> Delete
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

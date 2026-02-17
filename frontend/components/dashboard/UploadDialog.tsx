@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import api from '@/lib/axios';
-import { Upload, X } from 'lucide-react';
+
+import { AppIcon } from '@/components/shared/AppIcon';
 
 interface UploadDialogProps {
     open: boolean;
@@ -122,7 +123,7 @@ export function UploadDialog({ open, onClose, currentPath, onUploadComplete }: U
                                                 onClick={() => removeFile(index)}
                                                 className="ml-2 text-gray-400 hover:text-red-500"
                                             >
-                                                <X className="h-4 w-4" />
+                                                <AppIcon name="Close" className="h-4 w-4" />
                                             </button>
                                         )}
                                     </div>
@@ -158,7 +159,7 @@ export function UploadDialog({ open, onClose, currentPath, onUploadComplete }: U
                             disabled={files.length === 0 || uploading}
                             className="flex-1"
                         >
-                            <Upload className="h-4 w-4 mr-2" />
+                            <AppIcon name="Upload" className="h-4 w-4 mr-2" />
                             {uploading ? 'Uploading...' : 'Upload'}
                         </Button>
                         <Button

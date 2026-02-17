@@ -5,14 +5,7 @@ import api from '@/lib/axios';
 import { useAuth } from '@/hooks/useAuth';
 import { AnimatedButton } from '@/components/shared/AnimatedButton';
 import { GlassCard } from '@/components/shared/GlassCard';
-import {
-    Cloud,
-    Plus,
-    RefreshCw,
-    CheckCircle,
-    HardDrive,
-    Loader2
-} from 'lucide-react';
+import { AppIcon } from '@/components/shared/AppIcon';
 import { motion } from 'framer-motion';
 
 interface CloudAccount {
@@ -97,9 +90,9 @@ export default function AccountsPage() {
                     className="bg-purple-600 hover:bg-purple-700 text-white"
                 >
                     {linking ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <AppIcon name="Loader" className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
-                        <Plus className="h-4 w-4 mr-2" />
+                        <AppIcon name="Plus" className="h-4 w-4 mr-2" />
                     )}
                     {linking ? 'Redirecting...' : 'Link Google Drive'}
                 </AnimatedButton>
@@ -152,13 +145,13 @@ export default function AccountsPage() {
             {/* Account List */}
             {loading ? (
                 <div className="flex justify-center p-20">
-                    <Loader2 className="h-10 w-10 text-purple-600 animate-spin" />
+                    <AppIcon name="Loader" className="h-10 w-10 text-purple-600 animate-spin" />
                 </div>
             ) : accounts.length === 0 ? (
                 <GlassCard className="border-dashed border-2 bg-transparent">
                     <div className="flex flex-col items-center justify-center py-16 text-center">
                         <div className="h-20 w-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
-                            <Cloud className="h-10 w-10 text-gray-500" />
+                            <AppIcon name="CloudSync" className="h-10 w-10 text-gray-500" />
                         </div>
                         <h3 className="text-xl font-semibold text-white mb-2">
                             No Google Drive Accounts Linked
@@ -168,7 +161,7 @@ export default function AccountsPage() {
                             You can link multiple accounts to increase your total storage.
                         </p>
                         <AnimatedButton onClick={handleLinkDrive} disabled={linking} className="bg-white/10 hover:bg-white/20 text-white">
-                            <Cloud className="h-4 w-4 mr-2" />
+                            <AppIcon name="CloudSync" className="h-4 w-4 mr-2" />
                             Link Your First Google Drive
                         </AnimatedButton>
                     </div>
@@ -182,7 +175,7 @@ export default function AccountsPage() {
                                 <div className="flex items-start justify-between mb-6">
                                     <div className="flex items-center gap-4">
                                         <div className="h-12 w-12 rounded-xl bg-blue-500/20 flex items-center justify-center border border-blue-500/20">
-                                            <Cloud className="h-6 w-6 text-blue-400" />
+                                            <AppIcon name="CloudSync" className="h-6 w-6 text-blue-400" />
                                         </div>
                                         <div>
                                             <h3 className="font-semibold text-white text-lg">
@@ -194,7 +187,7 @@ export default function AccountsPage() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20">
-                                        <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                                        <AppIcon name="CheckCircle" className="h-3.5 w-3.5 text-green-500" />
                                         <span className="text-xs font-medium text-green-400">Connected</span>
                                     </div>
                                 </div>
@@ -226,7 +219,7 @@ export default function AccountsPage() {
 
                                     {/* Info */}
                                     <div className="flex items-center gap-2 text-xs text-gray-500 pt-4 border-t border-white/5 mt-auto">
-                                        <HardDrive className="h-3 w-3" />
+                                        <AppIcon name="Storage" className="h-3 w-3" />
                                         <span>Provider: Google Drive</span>
                                     </div>
                                 </div>

@@ -4,17 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-    FileText,
-    Image as ImageIcon,
-    Film,
-    Music,
-    Download,
-    Eye,
-    Shield,
-    Clock,
-    AlertCircle
-} from 'lucide-react';
+
+import { AppIcon } from '@/components/shared/AppIcon';
 
 interface SharedFile {
     name: string;
@@ -61,13 +52,13 @@ export default function SharePage() {
     };
 
     const getFileIcon = () => {
-        if (!file) return <FileText className="h-16 w-16 text-gray-400" />;
+        if (!file) return <AppIcon name="File" className="h-16 w-16 text-gray-400" />;
         const mime = file.mime_type?.toLowerCase() || '';
-        if (mime.includes('image')) return <ImageIcon className="h-16 w-16 text-purple-500" />;
-        if (mime.includes('video')) return <Film className="h-16 w-16 text-red-500" />;
-        if (mime.includes('audio')) return <Music className="h-16 w-16 text-blue-500" />;
-        if (mime.includes('pdf')) return <FileText className="h-16 w-16 text-red-600" />;
-        return <FileText className="h-16 w-16 text-gray-400" />;
+        if (mime.includes('image')) return <AppIcon name="Image" className="h-16 w-16 text-purple-500" />;
+        if (mime.includes('video')) return <AppIcon name="Video" className="h-16 w-16 text-red-500" />;
+        if (mime.includes('audio')) return <AppIcon name="Audio" className="h-16 w-16 text-blue-500" />;
+        if (mime.includes('pdf')) return <AppIcon name="File" className="h-16 w-16 text-red-600" />;
+        return <AppIcon name="File" className="h-16 w-16 text-gray-400" />;
     };
 
     const formatSize = (bytes: number) => {
@@ -132,7 +123,7 @@ export default function SharePage() {
             <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0a0a0a] p-4">
                 <Card className="max-w-md w-full">
                     <CardContent className="text-center py-12">
-                        <AlertCircle className="h-12 w-12 mx-auto text-red-400 mb-4" />
+                        <AppIcon name="Alert" className="h-12 w-12 mx-auto text-red-400 mb-4" />
                         <h2 className="text-lg font-semibold mb-2">Link Not Available</h2>
                         <p className="text-sm text-gray-500">{error}</p>
                     </CardContent>
@@ -147,14 +138,14 @@ export default function SharePage() {
             <div className="bg-white dark:bg-[#111] border-b border-gray-200 dark:border-gray-800">
                 <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Shield className="h-5 w-5 text-purple-600" />
+                        <AppIcon name="Logo" className="h-5 w-5 text-purple-600" />
                         <span className="font-bold text-lg">
                             <span className="text-purple-600">Tirta</span>Cloud
                         </span>
                     </div>
                     {expiresAt && (
                         <div className="flex items-center gap-1 text-xs text-gray-500">
-                            <Clock className="h-3 w-3" />
+                            <AppIcon name="Clock" className="h-3 w-3" />
                             Expires {new Date(expiresAt).toLocaleDateString()}
                         </div>
                     )}
@@ -179,7 +170,7 @@ export default function SharePage() {
                                         variant="outline"
                                         onClick={() => setShowPreview(!showPreview)}
                                     >
-                                        <Eye className="h-4 w-4 mr-2" />
+                                        <AppIcon name="Preview" className="h-4 w-4 mr-2" />
                                         {showPreview ? 'Hide Preview' : 'Preview'}
                                     </Button>
                                 )}
@@ -187,7 +178,7 @@ export default function SharePage() {
                                     onClick={() => window.open(downloadUrl, '_blank')}
                                     className="bg-purple-600 hover:bg-purple-700"
                                 >
-                                    <Download className="h-4 w-4 mr-2" />
+                                    <AppIcon name="Download" className="h-4 w-4 mr-2" />
                                     Download
                                 </Button>
                             </div>

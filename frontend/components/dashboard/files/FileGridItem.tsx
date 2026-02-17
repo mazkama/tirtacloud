@@ -3,19 +3,6 @@
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import {
-    FileText,
-    Folder,
-    MoreVertical,
-    Download,
-    Share2,
-    Trash2,
-    Eye,
-    Image as ImageIcon,
-    Film,
-    Music,
-    HardDrive
-} from "lucide-react";
-import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -24,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { cn } from "@/lib/utils";
+import { AppIcon } from "@/components/shared/AppIcon";
 
 interface VirtualFile {
     id: number;
@@ -56,13 +44,13 @@ export function FileGridItem({
 }: FileGridItemProps) {
 
     const getFileIcon = (file: VirtualFile) => {
-        if (file.is_folder) return <Folder className="h-10 w-10 text-yellow-500 drop-shadow-lg" />;
+        if (file.is_folder) return <AppIcon name="Folder" className="h-10 w-10 text-yellow-500 drop-shadow-lg" />;
         const mime = file.mime_type || '';
-        if (mime.includes('image')) return <ImageIcon className="h-10 w-10 text-purple-500" />;
-        if (mime.includes('video')) return <Film className="h-10 w-10 text-red-500" />;
-        if (mime.includes('audio')) return <Music className="h-10 w-10 text-blue-500" />;
-        if (mime.includes('pdf')) return <FileText className="h-10 w-10 text-red-600" />;
-        return <FileText className="h-10 w-10 text-gray-400" />;
+        if (mime.includes('image')) return <AppIcon name="Image" className="h-10 w-10 text-purple-500" />;
+        if (mime.includes('video')) return <AppIcon name="Video" className="h-10 w-10 text-red-500" />;
+        if (mime.includes('audio')) return <AppIcon name="Audio" className="h-10 w-10 text-blue-500" />;
+        if (mime.includes('pdf')) return <AppIcon name="File" className="h-10 w-10 text-red-600" />;
+        return <AppIcon name="File" className="h-10 w-10 text-gray-400" />;
     };
 
     const formatSize = (bytes: number) => {
@@ -101,31 +89,31 @@ export function FileGridItem({
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button className="p-1 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors">
-                                <MoreVertical className="h-4 w-4" />
+                                <AppIcon name="More" className="h-4 w-4" />
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40 bg-[#1a1a1a] border-white/10 text-white">
                             {!file.is_folder && (
                                 <>
                                     <DropdownMenuItem onClick={() => onPreview(file)}>
-                                        <Eye className="mr-2 h-4 w-4" /> Preview
+                                        <AppIcon name="Preview" className="mr-2 h-4 w-4" /> Preview
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => onDownload(file)}>
-                                        <Download className="mr-2 h-4 w-4" /> Download
+                                        <AppIcon name="Download" className="mr-2 h-4 w-4" /> Download
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => onShare(file)}>
-                                        <Share2 className="mr-2 h-4 w-4" /> Share
+                                        <AppIcon name="Share" className="mr-2 h-4 w-4" /> Share
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator className="bg-white/10" />
                                 </>
                             )}
                             {file.is_folder && (
                                 <DropdownMenuItem onClick={() => onNavigate(file)}>
-                                    <Folder className="mr-2 h-4 w-4" /> Open
+                                    <AppIcon name="Folder" className="mr-2 h-4 w-4" /> Open
                                 </DropdownMenuItem>
                             )}
                             <DropdownMenuItem onClick={() => onDelete(file)} className="text-red-400 focus:text-red-400">
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                <AppIcon name="Delete" className="mr-2 h-4 w-4" /> Delete
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

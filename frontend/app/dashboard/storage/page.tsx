@@ -5,15 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import api from '@/lib/axios';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { AnimatedButton } from '@/components/shared/AnimatedButton';
-import {
-    HardDrive,
-    Cloud,
-    RefreshCw,
-    TrendingUp,
-    Loader2,
-    FileText,
-    Folder
-} from 'lucide-react';
+import { AppIcon } from '@/components/shared/AppIcon';
 import { motion } from 'framer-motion';
 
 interface StorageAccount {
@@ -67,7 +59,7 @@ export default function StoragePage() {
     if (loading) {
         return (
             <div className="flex justify-center p-20">
-                <Loader2 className="h-10 w-10 text-purple-600 animate-spin" />
+                <AppIcon name="Loader" className="h-10 w-10 text-purple-600 animate-spin" />
             </div>
         );
     }
@@ -88,7 +80,7 @@ export default function StoragePage() {
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight text-white">Storage Overview</h1>
                 <AnimatedButton onClick={fetchStats} variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10">
-                    <RefreshCw className="h-4 w-4 mr-2" />
+                    <AppIcon name="Refresh" className="h-4 w-4 mr-2" />
                     Refresh
                 </AnimatedButton>
             </div>
@@ -98,7 +90,7 @@ export default function StoragePage() {
                 <GlassCard>
                     <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <h3 className="text-sm font-medium text-gray-400">Total Storage</h3>
-                        <HardDrive className="h-4 w-4 text-purple-400" />
+                        <AppIcon name="Storage" className="h-4 w-4 text-purple-400" />
                     </div>
                     <div>
                         <div className="text-2xl font-bold text-white">{stats.total_storage_formatted}</div>
@@ -111,7 +103,7 @@ export default function StoragePage() {
                 <GlassCard>
                     <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <h3 className="text-sm font-medium text-gray-400">Used Storage</h3>
-                        <TrendingUp className="h-4 w-4 text-blue-400" />
+                        <AppIcon name="Trending" className="h-4 w-4 text-blue-400" />
                     </div>
                     <div>
                         <div className="text-2xl font-bold text-white">{stats.used_storage_formatted}</div>
@@ -124,7 +116,7 @@ export default function StoragePage() {
                 <GlassCard>
                     <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <h3 className="text-sm font-medium text-gray-400">Available</h3>
-                        <Cloud className="h-4 w-4 text-green-400" />
+                        <AppIcon name="CloudSync" className="h-4 w-4 text-green-400" />
                     </div>
                     <div>
                         <div className="text-2xl font-bold text-white">{stats.available_storage_formatted}</div>
@@ -137,7 +129,7 @@ export default function StoragePage() {
                 <GlassCard>
                     <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <h3 className="text-sm font-medium text-gray-400">Items</h3>
-                        <FileText className="h-4 w-4 text-orange-400" />
+                        <AppIcon name="File" className="h-4 w-4 text-orange-400" />
                     </div>
                     <div>
                         <div className="text-2xl font-bold text-white">{stats.file_count}</div>
@@ -179,7 +171,7 @@ export default function StoragePage() {
                         <GlassCard key={account.id} hoverEffect>
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="h-10 w-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                                    <Cloud className="h-5 w-5 text-blue-400" />
+                                    <AppIcon name="CloudSync" className="h-5 w-5 text-blue-400" />
                                 </div>
                                 <div className="min-w-0">
                                     <h3 className="text-lg font-semibold text-white truncate">{account.name || 'Google Drive'}</h3>
@@ -226,7 +218,7 @@ export default function StoragePage() {
 
                 {stats.accounts.length === 0 && (
                     <GlassCard className="border-dashed border-2 bg-transparent text-center py-10">
-                        <Cloud className="h-12 w-12 mx-auto text-gray-600 mb-4" />
+                        <AppIcon name="CloudSync" className="h-12 w-12 mx-auto text-gray-600 mb-4" />
                         <p className="text-gray-400 mb-6">
                             No Google Drive accounts connected
                         </p>
